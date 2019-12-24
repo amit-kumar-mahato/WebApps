@@ -1,0 +1,35 @@
+.registration{
+	width: 500px;
+	height: 380px;
+	margin-top: 30px;
+	color: blue;
+}
+button {
+	margin-left: 180px;
+}
+fieldset {
+	border: #ff0000 3px solid;
+}
+form {
+	padding-top: 10px
+}
+.login{
+	width: 500px;
+	height: 380px;
+	margin-top: 30px;
+	color: blue;
+}
+.col-md-8{
+	margin-left: 80px;
+}
+input {
+	text-align: center;
+}
+.btn1{
+	margin-top: 3%;
+	margin-left: 32%;
+}
+.btn2{
+	margin-top: 3%;
+	margin-left: 5%;
+}
