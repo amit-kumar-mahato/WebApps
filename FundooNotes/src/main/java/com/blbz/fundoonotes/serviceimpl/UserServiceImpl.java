@@ -1,0 +1,195 @@
+package com.blbz.fundoonotes.serviceimpl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.blbz.fundoonotes.configuration.RabbitMQSender;
+import com.blbz.fundoonotes.dto.LoginDetails;
+import com.blbz.fundoonotes.dto.UserDto;
+import com.blbz.fundoonotes.model.User;
+import com.blbz.fundoonotes.repository.UserRepository;
+import com.blbz.fundoonotes.responses.MailObject;
+import com.blbz.fundoonotes.responses.MailResponse;
+import com.blbz.fundoonotes.service.UserService;
+import com.blbz.fundoonotes.utility.JwtGenerator;
+import com.blbz.fundoonotes.utility.MailServiceProvider;
+import com.blbz.fundoonotes.utility.Utility;
+
+@Service
+public class UserServiceImpl implements UserService {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+
+	@Autowired
+	private UserRepository userRepository;
+
+	@Autowired
+	private UserServiceImpl userServiceImpl;
+
+	@Autowired
+	private ModelMapper modelMapper;
+
+	/*
+	 * @Autowired private User userDetails;
+	 */
+
+	@Autowired
+	private MailResponse mailresponse;
+
+	@Autowired
+	private JwtGenerator generate;
+	
+	@Autowired
+	private MailObject mailObject;
+	
+	@Autowired
+	private RabbitMQSender rabbitMQSender;
+
+	@Transactional
+	@Override
+	public boolean registration(UserDto userDto) {
+		User userDetails = new User();
+
+		User checkEmailAvailability = userRepository.findOneByEmail(userDto.getEmail());
+		if (checkEmailAvailability == null) {
+			userDetails = modelMapper.map(userDto, User.class);
+			userDetails.setCreatedAt(Utility.dateTime());
+			userDetails.setPassword(Utility.passwordEncoder(userDto.getPassword()));
+
+			userRepository.save(userDetails);
+
+			String response = mailresponse.formMessage("http://localhost:8089/users/verify/",generate.jwtToken(userDetails.getUserId()));
+			LOGGER.info("Response URL :"+response);
+			
+			mailObject.setEmail(userDto.getEmail());
+			mailObject.setMessage(response);
+			mailObject.setSubject("verification");
+
+			rabbitMQSender.send(mailObject);
+			return true;
+		} else {
+			return false;
+		}
+
+		// user.setUserId(userServiceImpl.findFirstByOrderByUserIdDesc());
+		/*
+		 * String pswd = user.getPassword();
+		 * user.setPassword(Utility.passwordEncoder(pswd));
+		 * user.setCreatedAt(Utility.dateTime()); User userDetails =
+		 * userRepository.save(user); return userDetails.getUserId();
+		 */
+	}
+
+	/*
+	 * public String findFirstByOrderByUserIdDesc() { User userLast =
+	 * userRepository.findFirstByOrderByUserIdDesc();
+	 * System.out.println("User last value" + userLast); String userNextId = null;
+	 * if (userLast == null) { userNextId = "UB00001"; } else { String userLastId =
+	 * userLast.getUserId(); int userIntId =
+	 * Integer.parseInt(userLastId.substring(2)); userIntId += 1; userNextId = "UB"
+	 * + String.format("%05d", userIntId); } return userNextId;
+	 * 
+	 * }
+	 */
+	@Override
+	public List<User> getAllDetails() {
+		return (List<User>) userRepository.findAll();
+	}
+
+	@Override
+	public Map<String, Object> findByIdUserId(long userId) {
+		Optional<User> isUserIdAvailable = userRepository.findById(userId);
+		Map<String, Object> map = null;
+		if (isUserIdAvailable.isPresent()) {
+			map = new HashMap<String, Object>();
+			map.put("UserId", isUserIdAvailable.get().getUserId());
+			map.put("FirstName", isUserIdAvailable.get().getFirstName());
+			map.put("LastName", isUserIdAvailable.get().getLastName());
+			map.put("UserName", isUserIdAvailable.get().getUserName());
+			map.put("ContactNumber", isUserIdAvailable.get().getMobile());
+		} else {
+
+		}
+		return map;
+	}
+
+	/*
+	 * API to update user details
+	 */
+	@Override
+	public boolean updateDetails(User user) {
+		long userId = user.getUserId();
+		String pswd = user.getPassword();
+
+		String encrpswd = Utility.passwordEncoder(pswd);
+
+		Optional<User> userinfo = userRepository.findOneByUserIdAndPassword(userId, encrpswd);
+		if (userinfo.isPresent()) {
+			userRepository.save(user);
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean findByUserId(long userId) {
+
+		Optional<User> isUserIdAvailable = userRepository.findById(userId);
+		if (isUserIdAvailable.isPresent()) {
+			userRepository.deleteById(userId);
+			return true;
+		}
+		return false;
+	}
+
+	@Transactional
+	@Override
+	public User login(LoginDetails loginDetails) {
+		User userInfo = userRepository.findOneByEmail(loginDetails.getEmail());
+		LOGGER.info("User Information " + userInfo);
+
+		if (userInfo != null) {
+			if ((userInfo.getIsVerified() == true)
+					&& Utility.matches(Utility.passwordEncoder(loginDetails.getPassword()), userInfo.getPassword())) {
+
+				LOGGER.info("Generated Token :" + generate.jwtToken(userInfo.getUserId()));
+
+				return userInfo;
+			} else {
+				String response = mailresponse.formMessage("http://localhost:8081/verify",
+						generate.jwtToken(userInfo.getUserId()));
+
+				MailServiceProvider.sendEmail(loginDetails.getEmail(), "verification", response);
+
+				return null;
+			}
+
+		} else {
+			return null;
+		}
+	}
+
+	@Transactional
+	@Override
+	public boolean verify(String token) throws Exception {
+		LOGGER.info("id in verification" + (long) generate.parseJWT(token));
+		Long id = (long) generate.parseJWT(token);
+		Optional<User> userInfo = userRepository.findById(id);
+		if(userInfo.isPresent()) {
+			userInfo.get().setIsVerified(true);
+			userRepository.save(userInfo.get());
+			return true;
+		}
+		//userRepository.verify(id);
+		return false;
+	}
+}
