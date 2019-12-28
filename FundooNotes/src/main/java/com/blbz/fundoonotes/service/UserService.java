@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.blbz.fundoonotes.dto.LoginDetails;
+import com.blbz.fundoonotes.dto.Updatepassword;
 import com.blbz.fundoonotes.dto.UserDto;
 import com.blbz.fundoonotes.model.User;
 
@@ -22,5 +23,9 @@ public interface UserService {
 	User login(LoginDetails loginDetails);
 
 	boolean verify(String token) throws Exception;
+
+	boolean isUserAvailable(String email);
+
+	boolean updatePassword(String token, Updatepassword pswd)throws Exception;
 
 }

@@ -1,5 +1,6 @@
 package com.blbz.fundoonotes.serviceimpl;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.blbz.fundoonotes.configuration.RabbitMQSender;
 import com.blbz.fundoonotes.dto.LoginDetails;
+import com.blbz.fundoonotes.dto.Updatepassword;
 import com.blbz.fundoonotes.dto.UserDto;
 import com.blbz.fundoonotes.model.User;
 import com.blbz.fundoonotes.repository.UserRepository;
@@ -32,9 +35,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private UserRepository userRepository;
 
-	@Autowired
-	private UserServiceImpl userServiceImpl;
-
+	/*
+	 * @Autowired private UserServiceImpl userServiceImpl;
+	 */
 	@Autowired
 	private ModelMapper modelMapper;
 
@@ -47,10 +50,10 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private JwtGenerator generate;
-	
+
 	@Autowired
 	private MailObject mailObject;
-	
+
 	@Autowired
 	private RabbitMQSender rabbitMQSender;
 
@@ -67,9 +70,10 @@ public class UserServiceImpl implements UserService {
 
 			userRepository.save(userDetails);
 
-			String response = mailresponse.formMessage("http://localhost:8089/users/verify/",generate.jwtToken(userDetails.getUserId()));
-			LOGGER.info("Response URL :"+response);
-			
+			String response = mailresponse.formMessage("http://localhost:8081/users/verify/",
+					generate.jwtToken(userDetails.getUserId()));
+			LOGGER.info("Response URL :" + response);
+
 			mailObject.setEmail(userDto.getEmail());
 			mailObject.setMessage(response);
 			mailObject.setSubject("verification");
@@ -122,9 +126,6 @@ public class UserServiceImpl implements UserService {
 		return map;
 	}
 
-	/*
-	 * API to update user details
-	 */
 	@Override
 	public boolean updateDetails(User user) {
 		long userId = user.getUserId();
@@ -158,15 +159,17 @@ public class UserServiceImpl implements UserService {
 		LOGGER.info("User Information " + userInfo);
 
 		if (userInfo != null) {
-			if ((userInfo.getIsVerified() == true)
+			if ((userInfo.getIsVerified())
 					&& Utility.matches(Utility.passwordEncoder(loginDetails.getPassword()), userInfo.getPassword())) {
 
 				LOGGER.info("Generated Token :" + generate.jwtToken(userInfo.getUserId()));
 
 				return userInfo;
 			} else {
-				String response = mailresponse.formMessage("http://localhost:8081/verify",
+				String response = mailresponse.formMessage("http://localhost:8081/users/verify",
 						generate.jwtToken(userInfo.getUserId()));
+
+				LOGGER.info("Verification Link :" + response);
 
 				MailServiceProvider.sendEmail(loginDetails.getEmail(), "verification", response);
 
@@ -184,12 +187,41 @@ public class UserServiceImpl implements UserService {
 		LOGGER.info("id in verification" + (long) generate.parseJWT(token));
 		Long id = (long) generate.parseJWT(token);
 		Optional<User> userInfo = userRepository.findById(id);
-		if(userInfo.isPresent()) {
+		if (userInfo.isPresent()) {
 			userInfo.get().setIsVerified(true);
 			userRepository.save(userInfo.get());
 			return true;
 		}
-		//userRepository.verify(id);
+		// userRepository.verify(id);
+		return false;
+	}
+
+	@Override
+	public boolean isUserAvailable(String email) {
+		User isUserAvailable = userRepository.findOneByEmail(email);
+		if (isUserAvailable != null && isUserAvailable.getIsVerified() == true) {
+			String response = mailresponse.formMessage("http://localhost:8081/users/passwordupdate",
+					generate.jwtToken(isUserAvailable.getUserId()));
+			MailServiceProvider.sendEmail(isUserAvailable.getEmail(), "Update Password", response);
+			
+			return true;
+		}else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean updatePassword(String token, Updatepassword pswd) throws Exception {
+		if(pswd.getNewPassword().equals(pswd.getCnfPassword())) {
+			LOGGER.info("Getting id from token :"+generate.parseJWT(token));
+			long id = generate.parseJWT(token);
+			Optional<User> isIdAvailable = userRepository.findById(id);
+			if(isIdAvailable.isPresent()) {
+				isIdAvailable.get().setPassword(Utility.passwordEncoder(pswd.getNewPassword()));
+				userRepository.save(isIdAvailable.get());
+				return true;
+			}
+		}
 		return false;
 	}
 }
