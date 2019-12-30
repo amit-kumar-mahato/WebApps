@@ -8,7 +8,7 @@ import com.blbz.fundoonotes.dto.Updatepassword;
 import com.blbz.fundoonotes.dto.UserDto;
 import com.blbz.fundoonotes.model.User;
 
-public interface UserService {
+public interface IUserService {
 
 	boolean registration(UserDto user);
 

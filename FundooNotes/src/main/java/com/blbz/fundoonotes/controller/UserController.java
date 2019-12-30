@@ -3,6 +3,7 @@ package com.blbz.fundoonotes.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +19,7 @@ import com.blbz.fundoonotes.dto.UserDto;
 import com.blbz.fundoonotes.model.User;
 import com.blbz.fundoonotes.responses.Response;
 import com.blbz.fundoonotes.responses.UserAuthenticationResponse;
-import com.blbz.fundoonotes.service.UserService;
+import com.blbz.fundoonotes.service.IUserService;
 import com.blbz.fundoonotes.utility.JwtGenerator;
 
 @RestController
@@ -28,7 +29,7 @@ public class UserController {
 	private final Logger LOGGER  = LoggerFactory.getLogger(UserController.class);
 
 	@Autowired
-	private UserService userService;
+	private IUserService userService;
 	
 	@Autowired
 	private JwtGenerator generate;
@@ -58,6 +59,7 @@ public class UserController {
 	 * Api for user authentication
 	 * */
 	@PostMapping("/users/login")
+	@CachePut(key = "#token", value = "userId")
 	public ResponseEntity<UserAuthenticationResponse> login(@RequestBody LoginDetails loginDetails) {
 
 		User userInformation = userService.login(loginDetails);

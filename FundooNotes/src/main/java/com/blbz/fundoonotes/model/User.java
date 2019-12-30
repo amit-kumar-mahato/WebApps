@@ -1,14 +1,10 @@
 package com.blbz.fundoonotes.model;
 
-import java.util.List;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -16,7 +12,7 @@ import javax.validation.constraints.Size;
 public class User {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long userId;
 
 	@NotNull
@@ -53,8 +49,8 @@ public class User {
 		this.createdAt = string;
 	}
 
-	@OneToMany(mappedBy = "userNotes",cascade = CascadeType.ALL)
-	private List<Notes> notes;
+	//@OneToMany(mappedBy = "userNotes",cascade = CascadeType.ALL)
+	//private List<Note> notes;
 
 	public Long getUserId() {
 		return userId;
@@ -76,14 +72,11 @@ public class User {
 		this.isVerified = isVerified;
 	}
 
-	public List<Notes> getNotes() {
-		return notes;
-	}
-
-	public void setNotes(List<Notes> notes) {
-		this.notes = notes;
-	}
-
+	/*
+	 * public List<Note> getNotes() { return notes; }
+	 * 
+	 * public void setNotes(List<Note> notes) { this.notes = notes; }
+	 */
 	public void setUserId(Long userId) {
 		this.userId = userId;
 	}

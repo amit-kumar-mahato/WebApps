@@ -1,6 +1,5 @@
 package com.blbz.fundoonotes.serviceimpl;
 
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.blbz.fundoonotes.configuration.RabbitMQSender;
 import com.blbz.fundoonotes.dto.LoginDetails;
 import com.blbz.fundoonotes.dto.Updatepassword;
@@ -22,28 +20,21 @@ import com.blbz.fundoonotes.model.User;
 import com.blbz.fundoonotes.repository.UserRepository;
 import com.blbz.fundoonotes.responses.MailObject;
 import com.blbz.fundoonotes.responses.MailResponse;
-import com.blbz.fundoonotes.service.UserService;
+import com.blbz.fundoonotes.service.IUserService;
 import com.blbz.fundoonotes.utility.JwtGenerator;
 import com.blbz.fundoonotes.utility.MailServiceProvider;
 import com.blbz.fundoonotes.utility.Utility;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements IUserService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
 	@Autowired
 	private UserRepository userRepository;
 
-	/*
-	 * @Autowired private UserServiceImpl userServiceImpl;
-	 */
 	@Autowired
 	private ModelMapper modelMapper;
-
-	/*
-	 * @Autowired private User userDetails;
-	 */
 
 	@Autowired
 	private MailResponse mailresponse;
