@@ -28,4 +28,6 @@ public interface IUserService {
 
 	boolean updatePassword(String token, Updatepassword pswd)throws Exception;
 
+	List<User> getAllUsers();
+
 }

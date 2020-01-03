@@ -1,5 +1,7 @@
 package com.blbz.fundoonotes.controller;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import com.blbz.fundoonotes.dto.LoginDetails;
 import com.blbz.fundoonotes.dto.Updatepassword;
 import com.blbz.fundoonotes.dto.UserDto;
 import com.blbz.fundoonotes.model.User;
+import com.blbz.fundoonotes.repository.UserRepository;
 import com.blbz.fundoonotes.responses.Response;
 import com.blbz.fundoonotes.responses.UserAuthenticationResponse;
 import com.blbz.fundoonotes.service.IUserService;
@@ -33,6 +36,9 @@ public class UserController {
 	
 	@Autowired
 	private JwtGenerator generate;
+	
+	@Autowired
+	private UserRepository userRepository;
 
 	/*
 	 * API to register new user
@@ -63,7 +69,7 @@ public class UserController {
 	public ResponseEntity<UserAuthenticationResponse> login(@RequestBody LoginDetails loginDetails) {
 
 		User userInformation = userService.login(loginDetails);
-
+		loginDetails.setPassword("******");
 		if (userInformation!=null) {
 			String token=generate.jwtToken(userInformation.getUserId());
 			return ResponseEntity.status(HttpStatus.ACCEPTED).header("login successfull", loginDetails.getEmail())
@@ -120,5 +126,14 @@ public class UserController {
 		}else {
 			return ResponseEntity.status(HttpStatus.NOT_MODIFIED).body(new Response("Password and Confirm Password doesn't matched", 400));
 		}
+	}
+	
+	/*
+	 * API to get User list
+	 * */
+	@GetMapping("users")
+	public ResponseEntity<Response> usersList(){
+		List<User> userList = (List<User>) userRepository.findAll();
+		return ResponseEntity.status(HttpStatus.OK).body(new Response("Users are", 200,userList));
 	}
 }

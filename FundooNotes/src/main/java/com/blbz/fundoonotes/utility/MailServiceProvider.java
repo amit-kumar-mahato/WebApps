@@ -27,7 +27,7 @@ public class MailServiceProvider {
 	public static void sendEmail(String toEmail, String subject, String body) {
 
 		String fromEmail = "akmahato2868@gmail.com";//Enter your email id
-		String password = "*******"; //password
+		String password = "mahatoamit"; //password
 
 		Properties prop = new Properties();
 		prop.put("mail.smtp.auth", "true");

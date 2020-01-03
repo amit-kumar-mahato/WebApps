@@ -1,6 +1,7 @@
 package com.blbz.fundoonotes.serviceimpl;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.amazonaws.services.apigateway.model.Op;
 import com.blbz.fundoonotes.customexception.NoteIdNotFoundException;
 import com.blbz.fundoonotes.dto.NoteDto;
 import com.blbz.fundoonotes.model.Note;
@@ -49,10 +51,10 @@ public class NoteServiceImpl implements INoteService {
 			note = modelMapper.map(noteDto, Note.class);
 			note.setUserNotes(user.get());
 			note.setcreatedAt(LocalDateTime.now());
-			note.setArchieved(false);
-			note.setPinned(false);
-			note.setTrashed(false);
-			note.setColour("white");
+			note.setArchie(false);
+			note.setPin(false);
+			note.setTrash(false);
+			note.setColour("blue");
 		
 			noteRepository.save(note);
 			return true;
@@ -71,8 +73,8 @@ public class NoteServiceImpl implements INoteService {
 	if(isUserAvailable.isPresent()) {
 		Optional<Note> isNoteIdAvailable = noteRepository.findById(id);
 		if(isNoteIdAvailable.isPresent()) {
-			note.setTrashed(!note.isTrashed());
-			noteRepository.save(note);
+			isNoteIdAvailable.get().setTrash(!isNoteIdAvailable.get().isTrash());
+			noteRepository.save(isNoteIdAvailable.get());
 			return true;
 		}else {
 			throw new NoteIdNotFoundException("The note you are trying to delete is not available");
@@ -81,4 +83,62 @@ public class NoteServiceImpl implements INoteService {
 		return false;
 	}
 
+	@Override
+	public boolean isArchived(long id, String token) throws Exception{
+		long userId = jwtGenerator.parseJWT(token);
+		Optional<User> user = userRepository.findById(userId);
+		if(user.isPresent()) {
+			Optional<Note> isNoteAvailable = noteRepository.findById(id);
+			if(isNoteAvailable.isPresent()) {
+				isNoteAvailable.get().setArchie(!isNoteAvailable.get().isArchiev());
+				isNoteAvailable.get().setPin(false);
+				noteRepository.save(isNoteAvailable.get());
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public List<Note> getAllNotes(String token) throws Exception {
+		long id = jwtGenerator.parseJWT(token);
+		Optional<User> isUserAvailable = userRepository.findById(id);
+		List<Note> getAllNotes = null;
+		if(isUserAvailable.isPresent()) {
+			getAllNotes = noteRepository.getAllNotes(id);
+		}
+		return getAllNotes;
+	}
+
+	@Override
+	public boolean addColor(String color, String token, long id) throws Exception {
+		
+		long userId = jwtGenerator.parseJWT(token);
+		Optional<User> isUserAvailable = userRepository.findById(userId);
+		if(isUserAvailable.isPresent()) {
+			Optional<Note> isNoteAvailable = noteRepository.findById(id);
+			if(isNoteAvailable.isPresent()) {
+				isNoteAvailable.get().setColour(color);
+				noteRepository.save(isNoteAvailable.get());
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public boolean pinnedNotes(long id, String token) throws Exception {
+		long userId = jwtGenerator.parseJWT(token);
+		Optional<User> isUserAvailable = userRepository.findById(userId);
+		if(isUserAvailable.isPresent()) {
+			Optional<Note> isNoteAvailable = noteRepository.findById(id);
+			if(isNoteAvailable.isPresent()) {
+				isNoteAvailable.get().setPin(!isNoteAvailable.get().isPin());
+				isNoteAvailable.get().setArchie(false);
+				noteRepository.save(isNoteAvailable.get());
+				return true;
+			}
+		}
+		return false;
+	}
 }
