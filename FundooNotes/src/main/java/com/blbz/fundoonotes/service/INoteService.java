@@ -3,6 +3,7 @@ package com.blbz.fundoonotes.service;
 import java.util.List;
 
 import com.blbz.fundoonotes.dto.NoteDto;
+import com.blbz.fundoonotes.dto.ReminderDto;
 import com.blbz.fundoonotes.model.Note;
 
 public interface INoteService {
@@ -18,5 +19,9 @@ public interface INoteService {
 	boolean addColor(String color, String token, long id) throws Exception;
 
 	boolean pinnedNotes(long id, String token) throws Exception;
+
+	boolean setReminder(long noteId, String token, ReminderDto reminderDto) throws Exception;
+
+	boolean permanentDelete(long noteId, String token) throws Exception;
 
 }

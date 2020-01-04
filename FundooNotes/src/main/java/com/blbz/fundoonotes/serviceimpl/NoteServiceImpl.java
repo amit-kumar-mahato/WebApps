@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.amazonaws.services.apigateway.model.Op;
 import com.blbz.fundoonotes.customexception.NoteIdNotFoundException;
 import com.blbz.fundoonotes.dto.NoteDto;
+import com.blbz.fundoonotes.dto.ReminderDto;
 import com.blbz.fundoonotes.model.Note;
 import com.blbz.fundoonotes.model.User;
 import com.blbz.fundoonotes.repository.NoteRepository;
@@ -136,6 +137,33 @@ public class NoteServiceImpl implements INoteService {
 				isNoteAvailable.get().setPin(!isNoteAvailable.get().isPin());
 				isNoteAvailable.get().setArchie(false);
 				noteRepository.save(isNoteAvailable.get());
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public boolean setReminder(long noteId, String token,ReminderDto reminderDto) throws Exception {
+		long userId = jwtGenerator.parseJWT(token);
+		Optional<User> isUserAvailable = userRepository.findById(userId);
+		if(isUserAvailable.isPresent()) {
+			Optional<Note> isNoteAvailable = noteRepository.findById(noteId);
+			if(isNoteAvailable.isPresent()) {
+				isNoteAvailable.get().setReminder(reminderDto.getTime());
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public boolean permanentDelete(long noteId, String token) throws Exception {
+		long userId = jwtGenerator.parseJWT(token);
+		Optional<User> isUserAvailable = userRepository.findById(userId);
+		if(isUserAvailable.isPresent()) {
+			Optional<Note> isNoteAvailable = noteRepository.findById(noteId);
+			if(isNoteAvailable.isPresent()) {
+				noteRepository.deleteNotesPermanently(noteId);
 				return true;
 			}
 		}

@@ -1,5 +1,6 @@
 package com.blbz.fundoonotes.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.blbz.fundoonotes.dto.NoteDto;
+import com.blbz.fundoonotes.dto.ReminderDto;
 import com.blbz.fundoonotes.model.Note;
 import com.blbz.fundoonotes.repository.NoteRepository;
 import com.blbz.fundoonotes.responses.Response;
 import com.blbz.fundoonotes.service.INoteService;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @RestController
 public class NoteController {
@@ -46,8 +49,8 @@ public class NoteController {
 	 * API to delete particular notes
 	 */
 	@DeleteMapping("notes/delete/{noteId}")
-	public ResponseEntity<Response> deleteOneNote(@PathVariable("noteId") long noteId, @RequestHeader("token") String token)
-			throws Exception {
+	public ResponseEntity<Response> deleteOneNote(@PathVariable("noteId") long noteId,
+			@RequestHeader("token") String token) throws Exception {
 
 		boolean result = noteService.deleteOneNote(noteId, token);
 		if (result) {
@@ -61,6 +64,7 @@ public class NoteController {
 	/*
 	 * API to get all the notes of one user
 	 */
+	@JsonIgnore
 	@GetMapping("notes")
 	public ResponseEntity<Response> notes(@RequestHeader("token") String token) throws Exception {
 		List<Note> notes = noteService.getAllNotes(token);
@@ -71,8 +75,8 @@ public class NoteController {
 	 * API to make note Archive
 	 */
 	@PutMapping("notes/archive/{noteId}")
-	public ResponseEntity<Response> makeArchive(@PathVariable("noteId") long noteId, @RequestHeader("token") String token)
-			throws Exception {
+	public ResponseEntity<Response> makeArchive(@PathVariable("noteId") long noteId,
+			@RequestHeader("token") String token) throws Exception {
 		boolean result = noteService.isArchived(noteId, token);
 		if (result) {
 			return ResponseEntity.status(HttpStatus.OK).body(new Response("Note is Archived Successfully", 200));
@@ -99,12 +103,40 @@ public class NoteController {
 	 * API to make note pinned
 	 */
 	@PutMapping("notes/pin/{noteId}")
-	public ResponseEntity<Response> pinned(@PathVariable("noteId") long noteId, @RequestHeader("token") String token) throws Exception{
-		boolean result = noteService.pinnedNotes(noteId,token);
-		if(result) {
+	public ResponseEntity<Response> pinned(@PathVariable("noteId") long noteId, @RequestHeader("token") String token)
+			throws Exception {
+		boolean result = noteService.pinnedNotes(noteId, token);
+		if (result) {
 			return ResponseEntity.status(HttpStatus.OK).body(new Response("Note is pinned", 200));
-		}else {
+		} else {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Something went wrong", 400));
+		}
+	}
+
+	/*
+	 * API to set reminder
+	 */
+	@PutMapping("notes/reminder/{noteId}")
+	public ResponseEntity<Response> reminder(@PathVariable("noteId") long noteId, @RequestHeader("token") String token,
+			@RequestBody ReminderDto reminderDto) throws Exception {
+		boolean result = noteService.setReminder(noteId, token,reminderDto);
+		if (result) {
+			return ResponseEntity.status(HttpStatus.OK).body(new Response("Reminder is Added Successfully", 200));
+		} else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Something went wrong", 400));
+		}
+	}
+	
+	/*
+	 * API to delete notes permanently
+	 * */
+	@DeleteMapping("notes/permanentDelete/{noteId}")
+	public ResponseEntity<Response> permanentDelete(@PathVariable("noteId") long noteId, @RequestHeader("token") String token) throws Exception{
+		boolean result = noteService.permanentDelete(noteId,token);
+		if(result) {
+			return ResponseEntity.status(HttpStatus.OK).body(new Response("Note is deleted permanently", 200));
+		}else {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("The note you are trying to delete is not available", 400));
 		}
 	}
 }
