@@ -10,6 +10,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class Label {
 
@@ -22,6 +24,7 @@ public class Label {
 	@ManyToMany(mappedBy = "labels")
 	private List<Note> noteList;
 	
+	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "userId")
 	private User userLabel;

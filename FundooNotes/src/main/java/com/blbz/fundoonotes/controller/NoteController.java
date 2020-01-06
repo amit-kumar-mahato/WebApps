@@ -21,6 +21,7 @@ import com.blbz.fundoonotes.dto.ReminderDto;
 import com.blbz.fundoonotes.model.Note;
 import com.blbz.fundoonotes.repository.NoteRepository;
 import com.blbz.fundoonotes.responses.Response;
+import com.blbz.fundoonotes.service.ElasticSearchService;
 import com.blbz.fundoonotes.service.INoteService;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -29,7 +30,7 @@ public class NoteController {
 
 	@Autowired
 	INoteService noteService;
-
+	
 	/*
 	 * API to create notes
 	 */
@@ -139,4 +140,8 @@ public class NoteController {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("The note you are trying to delete is not available", 400));
 		}
 	}
+	
+	/*
+	 * API to search note
+	 * */
 }

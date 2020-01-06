@@ -13,6 +13,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 //@Getter
 public class Note {
@@ -34,18 +36,22 @@ public class Note {
 	@Column(columnDefinition = "boolean default false")
 	private boolean isTrash;
 
+	@JsonIgnore
 	private LocalDateTime createdAt;
 
+	@JsonIgnore
 	private LocalDateTime updatedAt;
 
 	private String colour;
 
 	private LocalDateTime reminder;
 
+	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name = "userId")
 	private User userNotes;
 
+	@JsonIgnore
 	@ManyToMany
 	@JoinTable(name = "Label_Note", joinColumns = @JoinColumn(name = "note_id", referencedColumnName = "noteId"), inverseJoinColumns = @JoinColumn(name = "label_id", referencedColumnName = "labelId"))
 	private List<Label> labels;
@@ -165,4 +171,5 @@ public class Note {
 	public void setUserNotes(User userNotes) {
 		this.userNotes = userNotes;
 	}
+
 }

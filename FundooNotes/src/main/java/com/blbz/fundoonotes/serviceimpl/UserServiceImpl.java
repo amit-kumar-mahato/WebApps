@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +48,9 @@ public class UserServiceImpl implements IUserService {
 
 	@Autowired
 	private RabbitMQSender rabbitMQSender;
+	
+	@Autowired
+	private BCryptPasswordEncoder encryption;
 
 	@Transactional
 	@Override
@@ -57,7 +61,9 @@ public class UserServiceImpl implements IUserService {
 		if (checkEmailAvailability == null) {
 			userDetails = modelMapper.map(userDto, User.class);
 			userDetails.setCreatedAt(Utility.dateTime());
-			userDetails.setPassword(Utility.passwordEncoder(userDto.getPassword()));
+			//userDetails.setPassword(Utility.passwordEncoder(userDto.getPassword()));
+			String password = encryption.encode(userDto.getPassword());
+			userDetails.setPassword(password);
 
 			userRepository.save(userDetails);
 
@@ -74,27 +80,8 @@ public class UserServiceImpl implements IUserService {
 		} else {
 			return false;
 		}
-
-		// user.setUserId(userServiceImpl.findFirstByOrderByUserIdDesc());
-		/*
-		 * String pswd = user.getPassword();
-		 * user.setPassword(Utility.passwordEncoder(pswd));
-		 * user.setCreatedAt(Utility.dateTime()); User userDetails =
-		 * userRepository.save(user); return userDetails.getUserId();
-		 */
 	}
 
-	/*
-	 * public String findFirstByOrderByUserIdDesc() { User userLast =
-	 * userRepository.findFirstByOrderByUserIdDesc();
-	 * System.out.println("User last value" + userLast); String userNextId = null;
-	 * if (userLast == null) { userNextId = "UB00001"; } else { String userLastId =
-	 * userLast.getUserId(); int userIntId =
-	 * Integer.parseInt(userLastId.substring(2)); userIntId += 1; userNextId = "UB"
-	 * + String.format("%05d", userIntId); } return userNextId;
-	 * 
-	 * }
-	 */
 	@Override
 	public List<User> getAllDetails() {
 		return (List<User>) userRepository.findAll();
@@ -150,8 +137,13 @@ public class UserServiceImpl implements IUserService {
 		LOGGER.info("User Information " + userInfo);
 
 		if (userInfo != null) {
+			/*
+			 * if ((userInfo.getIsVerified()) &&
+			 * Utility.matches(Utility.passwordEncoder(loginDetails.getPassword()),
+			 * userInfo.getPassword())) {
+			 */
 			if ((userInfo.getIsVerified())
-					&& Utility.matches(Utility.passwordEncoder(loginDetails.getPassword()), userInfo.getPassword())) {
+					&& encryption.matches(loginDetails.getPassword(), userInfo.getPassword())) {
 
 				LOGGER.info("Generated Token :" + generate.jwtToken(userInfo.getUserId()));
 
