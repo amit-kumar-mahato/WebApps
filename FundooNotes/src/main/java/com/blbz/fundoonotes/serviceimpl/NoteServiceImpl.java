@@ -18,13 +18,17 @@ import com.blbz.fundoonotes.model.Note;
 import com.blbz.fundoonotes.model.User;
 import com.blbz.fundoonotes.repository.NoteRepository;
 import com.blbz.fundoonotes.repository.UserRepository;
+import com.blbz.fundoonotes.service.ElasticSearchService;
 import com.blbz.fundoonotes.service.INoteService;
 import com.blbz.fundoonotes.utility.JwtGenerator;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class NoteServiceImpl implements INoteService {
-	
-	private final Logger LOGGER = LoggerFactory.getLogger(NoteServiceImpl.class);
 	
 	@Autowired
 	JwtGenerator jwtGenerator;
@@ -40,24 +44,32 @@ public class NoteServiceImpl implements INoteService {
 	
 	@Autowired
 	NoteRepository noteRepository;
+	
+	@Autowired
+	ElasticSearchService elasticSearchService;
 
 	@Override
 	public boolean computeSave(NoteDto noteDto, String token) throws Exception {
 		
 		long id = jwtGenerator.parseJWT(token);
-		LOGGER.info("Id is :"+id+" ,Description :"+noteDto.getDescription());
+		//LOGGER.info("Id is :"+id+" ,Description :"+noteDto.getDescription());
+		log.info("Id is :"+id+" ,Description :"+noteDto.getDescription());
 		
 		Optional<User> user = userRepository.findById(id);
 		if(user.isPresent()) {
 			note = modelMapper.map(noteDto, Note.class);
 			note.setUserNotes(user.get());
-			note.setcreatedAt(LocalDateTime.now());
-			note.setArchie(false);
+			note.setCreatedAt(LocalDateTime.now());
+			note.setArchiev(false);
 			note.setPin(false);
 			note.setTrash(false);
 			note.setColour("blue");
 		
-			noteRepository.save(note);
+			Note noteInfo = noteRepository.save(note);
+			if(noteInfo!=null) {
+				String result = elasticSearchService.createNote(note);
+				log.info("Elastic Search :"+result);
+			}
 			return true;
 		}
 		/*
@@ -91,7 +103,7 @@ public class NoteServiceImpl implements INoteService {
 		if(user.isPresent()) {
 			Optional<Note> isNoteAvailable = noteRepository.findById(id);
 			if(isNoteAvailable.isPresent()) {
-				isNoteAvailable.get().setArchie(!isNoteAvailable.get().isArchiev());
+				isNoteAvailable.get().setArchiev(!isNoteAvailable.get().isArchiev());
 				isNoteAvailable.get().setPin(false);
 				noteRepository.save(isNoteAvailable.get());
 				return true;
@@ -135,7 +147,7 @@ public class NoteServiceImpl implements INoteService {
 			Optional<Note> isNoteAvailable = noteRepository.findById(id);
 			if(isNoteAvailable.isPresent()) {
 				isNoteAvailable.get().setPin(!isNoteAvailable.get().isPin());
-				isNoteAvailable.get().setArchie(false);
+				isNoteAvailable.get().setArchiev(false);
 				noteRepository.save(isNoteAvailable.get());
 				return true;
 			}
@@ -168,5 +180,11 @@ public class NoteServiceImpl implements INoteService {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public List<Note> searchByTitle(String title) {
+		List<Note> notes = elasticSearchService.searchByTitle(title);
+		return notes;
 	}
 }

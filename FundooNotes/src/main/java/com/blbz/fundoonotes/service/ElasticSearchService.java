@@ -8,11 +8,7 @@ import com.blbz.fundoonotes.model.Note;
 
 public interface ElasticSearchService {
 
-	String CreateNote(Note note);
+	String createNote(Note note);
 
-	String UpdateNote(Note note);
-
-	String DeleteNote(Note note);
-
-	List<Note> searchbytitle(String title);
+	List<Note> searchByTitle(String title);
 }

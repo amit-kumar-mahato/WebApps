@@ -24,4 +24,6 @@ public interface INoteService {
 
 	boolean permanentDelete(long noteId, String token) throws Exception;
 
+	List<Note> searchByTitle(String title);
+
 }
