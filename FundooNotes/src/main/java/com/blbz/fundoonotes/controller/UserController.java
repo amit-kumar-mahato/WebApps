@@ -77,7 +77,7 @@ public class UserController {
 	 * API to verify the user
 	 */
 	@GetMapping("/users/verify/{token}")
-	public ResponseEntity<Response> userVerification(@PathVariable("token") String token) throws Exception {
+	public ResponseEntity<Response> userVerification(@PathVariable("token") String token) {
 
 		System.out.println("token for verification" + token);
 		boolean update = userService.verify(token);
@@ -102,7 +102,7 @@ public class UserController {
 	 */
 	@PostMapping("users/updatepassword/{token}")
 	public ResponseEntity<Response> updatePassword(@PathVariable("token") String token,
-			@RequestBody Updatepassword pswd) throws Exception {
+			@RequestBody Updatepassword pswd) {
 		log.info("Token :" + token);
 		log.info("New Password :" + pswd.getNewPassword());
 

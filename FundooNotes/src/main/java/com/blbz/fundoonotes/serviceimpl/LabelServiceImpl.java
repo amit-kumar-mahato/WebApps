@@ -19,7 +19,10 @@ import com.blbz.fundoonotes.repository.UserRepository;
 import com.blbz.fundoonotes.service.LabelService;
 import com.blbz.fundoonotes.utility.JwtGenerator;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
 public class LabelServiceImpl implements LabelService {
 
 	@Autowired
@@ -41,7 +44,7 @@ public class LabelServiceImpl implements LabelService {
 	Label label;
 
 	@Override
-	public boolean createlabel(LabelDto labelDto, String token) throws Exception {
+	public boolean createlabel(LabelDto labelDto, String token) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
@@ -53,15 +56,14 @@ public class LabelServiceImpl implements LabelService {
 				labelRepository.save(label);
 				return true;
 			} else {
-				throw new LabelAlreadyExistException("Label is already exist...");
-				// return false;
+				//throw new LabelAlreadyExistException("Label is already exist...");
 			}
 		}
 		return false;
 	}
 
 	@Override
-	public boolean createOrMapWithNote(LabelDto labelDto, long noteId, String token) throws Exception {
+	public boolean createOrMapWithNote(LabelDto labelDto, long noteId, String token) throws LabelAlreadyExistException {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
@@ -100,12 +102,13 @@ public class LabelServiceImpl implements LabelService {
 	}
 
 	@Override
-	public boolean deletepermanently(String token, long labelId) throws Exception {
+	public boolean deletepermanently(String token, long labelId) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
 			Optional<Label> isLabelAvailable = labelRepository.findById(labelId);
 			if (isLabelAvailable.isPresent()) {
+			//	isLabelAvailable.get().getNoteList().remove();
 				labelRepository.deleteById(labelId);
 				return true;
 			}
@@ -114,7 +117,7 @@ public class LabelServiceImpl implements LabelService {
 	}
 
 	@Override
-	public boolean updateLabel(String token, long labelId, LabelDto labelDto) throws Exception {
+	public boolean updateLabel(String token, long labelId, LabelDto labelDto) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
@@ -129,7 +132,7 @@ public class LabelServiceImpl implements LabelService {
 	}
 
 	@Override
-	public List<Label> getAllLabels(String token) throws Exception {
+	public List<Label> getAllLabels(String token) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
@@ -139,7 +142,7 @@ public class LabelServiceImpl implements LabelService {
 	}
 
 	@Override
-	public List<Note> getAllNotes(String token, long labelId) throws Exception {
+	public List<Note> getAllNotes(String token, long labelId) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
@@ -159,9 +162,13 @@ public class LabelServiceImpl implements LabelService {
 		if (isNoteAvailable.isPresent()) {
 			Optional<Label> isLabelAvailable = labelRepository.findById(labelId);
 			if (isLabelAvailable.isPresent()) {
-				System.out.println("Note :" + isNoteAvailable.get().getTitle());
-				isLabelAvailable.get().getNoteList().add(isNoteAvailable.get());
-				labelRepository.save(isLabelAvailable.get());
+				log.info("Note :" + isNoteAvailable.get().getTitle());
+				/*
+				 * isLabelAvailable.get().getNoteList().add(isNoteAvailable.get());
+				 * labelRepository.save(isLabelAvailable.get());
+				 */
+				isNoteAvailable.get().getLabels().add(isLabelAvailable.get());
+				noterepository.save(isNoteAvailable.get());
 				return true;
 			}
 		}

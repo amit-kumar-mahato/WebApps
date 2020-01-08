@@ -22,11 +22,11 @@ public interface IUserService {
 
 	User login(LoginDetails loginDetails);
 
-	boolean verify(String token) throws Exception;
+	boolean verify(String token);
 
 	boolean isUserAvailable(String email);
 
-	boolean updatePassword(String token, Updatepassword pswd)throws Exception;
+	boolean updatePassword(String token, Updatepassword pswd);
 
 	List<User> getAllUsers();
 

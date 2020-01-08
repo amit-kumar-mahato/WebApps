@@ -28,12 +28,15 @@ public class JwtGenerator {
 	/*
 	 * method to parse the jwt token into integer
 	 * */
-	public int parseJWT(String jwt)
-			throws JWTVerificationException, IllegalArgumentException, UnsupportedEncodingException {
+	public int parseJWT(String jwt){
 
 		Integer userId = 0;
 		if (jwt != null) {
-			userId = JWT.require(Algorithm.HMAC512(SECRET)).build().verify(jwt).getClaim("id").asInt();
+			try {
+				userId = JWT.require(Algorithm.HMAC512(SECRET)).build().verify(jwt).getClaim("id").asInt();
+			} catch (JWTVerificationException | IllegalArgumentException | UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
 		}
 		return userId;
 	}

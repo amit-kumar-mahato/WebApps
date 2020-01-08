@@ -49,7 +49,7 @@ public class NoteServiceImpl implements INoteService {
 	ElasticSearchService elasticSearchService;
 
 	@Override
-	public boolean computeSave(NoteDto noteDto, String token) throws Exception {
+	public boolean computeSave(NoteDto noteDto, String token) {
 		
 		long id = jwtGenerator.parseJWT(token);
 		//LOGGER.info("Id is :"+id+" ,Description :"+noteDto.getDescription());
@@ -80,7 +80,7 @@ public class NoteServiceImpl implements INoteService {
 	}
 
 	@Override
-	public boolean deleteOneNote(long id, String token) throws Exception {
+	public boolean deleteOneNote(long id, String token) throws NoteIdNotFoundException {
 		long userId = jwtGenerator.parseJWT(token);
 	Optional<User> isUserAvailable = userRepository.findById(userId);
 	if(isUserAvailable.isPresent()) {
@@ -97,7 +97,7 @@ public class NoteServiceImpl implements INoteService {
 	}
 
 	@Override
-	public boolean isArchived(long id, String token) throws Exception{
+	public boolean isArchived(long id, String token){
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> user = userRepository.findById(userId);
 		if(user.isPresent()) {
@@ -113,7 +113,7 @@ public class NoteServiceImpl implements INoteService {
 	}
 
 	@Override
-	public List<Note> getAllNotes(String token) throws Exception {
+	public List<Note> getAllNotes(String token) {
 		long id = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(id);
 		List<Note> getAllNotes = null;
@@ -124,7 +124,7 @@ public class NoteServiceImpl implements INoteService {
 	}
 
 	@Override
-	public boolean addColor(String color, String token, long id) throws Exception {
+	public boolean addColor(String color, String token, long id) {
 		
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
@@ -140,7 +140,7 @@ public class NoteServiceImpl implements INoteService {
 	}
 
 	@Override
-	public boolean pinnedNotes(long id, String token) throws Exception {
+	public boolean pinnedNotes(long id, String token) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if(isUserAvailable.isPresent()) {
@@ -156,7 +156,7 @@ public class NoteServiceImpl implements INoteService {
 	}
 
 	@Override
-	public boolean setReminder(long noteId, String token,ReminderDto reminderDto) throws Exception {
+	public boolean setReminder(long noteId, String token,ReminderDto reminderDto) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if(isUserAvailable.isPresent()) {
@@ -169,7 +169,7 @@ public class NoteServiceImpl implements INoteService {
 	}
 
 	@Override
-	public boolean permanentDelete(long noteId, String token) throws Exception {
+	public boolean permanentDelete(long noteId, String token) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if(isUserAvailable.isPresent()) {

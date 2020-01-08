@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.blbz.fundoonotes.customexception.LabelAlreadyExistException;
 import com.blbz.fundoonotes.dto.LabelDto;
 import com.blbz.fundoonotes.model.Label;
 import com.blbz.fundoonotes.model.Note;
@@ -31,8 +32,7 @@ public class LabelController {
 	 * API to create label for note
 	 */
 	@PostMapping("labels/create")
-	public ResponseEntity<Response> createLabel(@RequestBody LabelDto labelDto, @RequestHeader("token") String token)
-			throws Exception {
+	public ResponseEntity<Response> createLabel(@RequestBody LabelDto labelDto, @RequestHeader("token") String token) throws LabelAlreadyExistException{
 
 		boolean result = labelService.createlabel(labelDto, token);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is Created", 200))
@@ -43,9 +43,9 @@ public class LabelController {
 	/*
 	 * API to map exit label to the note
 	 */
-	@PostMapping("maplabel/{noteId}")
+	@PostMapping("labels/create/{noteId}")
 	public ResponseEntity<Response> labelMapToNote(@RequestBody LabelDto labelDto, @PathVariable("noteId") long noteId,
-			@RequestHeader("token") String token) throws Exception {
+			@RequestHeader("token") String token) throws LabelAlreadyExistException {
 		boolean result = labelService.createOrMapWithNote(labelDto, noteId, token);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is created successfully", 200))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND)

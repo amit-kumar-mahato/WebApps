@@ -22,6 +22,4 @@ public class NoteDto {
 		this.description = description;
 	}
 	
-	
-	
 }

@@ -1,6 +1,5 @@
 package com.blbz.fundoonotes.controller;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.blbz.fundoonotes.dto.NoteDto;
 import com.blbz.fundoonotes.dto.ReminderDto;
 import com.blbz.fundoonotes.model.Note;
-import com.blbz.fundoonotes.repository.NoteRepository;
 import com.blbz.fundoonotes.responses.Response;
-import com.blbz.fundoonotes.service.ElasticSearchService;
 import com.blbz.fundoonotes.service.INoteService;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -72,7 +69,7 @@ public class NoteController {
 	 */
 	@PutMapping("notes/archive/{noteId}")
 	public ResponseEntity<Response> makeArchive(@PathVariable("noteId") long noteId,
-			@RequestHeader("token") String token) throws Exception {
+			@RequestHeader("token") String token){
 		boolean result = noteService.isArchived(noteId, token);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Note is Archived Successfully", 200))
 				: ResponseEntity.status(HttpStatus.NOT_MODIFIED).body(new Response("Note doesn't Archived", 400));
@@ -83,7 +80,7 @@ public class NoteController {
 	 */
 	@PutMapping("notes/color/{noteId}")
 	public ResponseEntity<Response> addColor(@RequestParam("color") String color, @RequestHeader("token") String token,
-			@PathVariable("noteId") long noteId) throws Exception {
+			@PathVariable("noteId") long noteId) {
 		boolean result = noteService.addColor(color, token, noteId);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Color is added successfully", 200))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Something went wrong", 400));
