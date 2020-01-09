@@ -66,10 +66,10 @@ public class NoteServiceImpl implements INoteService {
 			note.setColour("blue");
 		
 			Note noteInfo = noteRepository.save(note);
-			if(noteInfo!=null) {
-				String result = elasticSearchService.createNote(note);
-				log.info("Elastic Search :"+result);
-			}
+			/*
+			 * if(noteInfo!=null) { String result = elasticSearchService.createNote(note);
+			 * log.info("Elastic Search :"+result); }
+			 */
 			return true;
 		}
 		/*

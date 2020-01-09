@@ -1,10 +1,10 @@
 package com.blbz.fundoonotes.customexception;
 
-public class EmailAlreadyExistException extends RuntimeException{
+public class UserNotVerifiedException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
 
-	public EmailAlreadyExistException(String message) {
+	public UserNotVerifiedException(String message) {
 		super(message);
 	}
 }

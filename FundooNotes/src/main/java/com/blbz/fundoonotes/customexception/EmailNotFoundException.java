@@ -1,10 +1,10 @@
 package com.blbz.fundoonotes.customexception;
 
-public class EmailAlreadyExistException extends RuntimeException{
+public class EmailNotFoundException extends RuntimeException {
 
 	private static final long serialVersionUID = 1L;
-
-	public EmailAlreadyExistException(String message) {
+	public EmailNotFoundException(String message) {
 		super(message);
 	}
+
 }

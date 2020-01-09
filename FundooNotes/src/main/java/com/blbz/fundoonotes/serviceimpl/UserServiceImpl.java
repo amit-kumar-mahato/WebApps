@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.blbz.fundoonotes.configuration.RabbitMQSender;
 import com.blbz.fundoonotes.customexception.EmailAlreadyExistException;
+import com.blbz.fundoonotes.customexception.EmailNotFoundException;
+import com.blbz.fundoonotes.customexception.UserNotVerifiedException;
 import com.blbz.fundoonotes.dto.LoginDetails;
 import com.blbz.fundoonotes.dto.Updatepassword;
 import com.blbz.fundoonotes.dto.UserDto;
@@ -54,11 +56,14 @@ public class UserServiceImpl implements IUserService {
 
 	@Transactional
 	@Override
-	public boolean registration(UserDto userDto) {
+	public User registration(UserDto userDto) {
 		User userDetails = new User();
 
 		Optional<User> checkEmailAvailability = userRepository.findOneByEmail(userDto.getEmail());
-		if (!checkEmailAvailability.isPresent()) {
+		if(checkEmailAvailability.isPresent()) {
+			throw new EmailAlreadyExistException(userDto.getEmail()+" Already Exist");
+		}
+		else{
 			userDetails = modelMapper.map(userDto, User.class);
 			userDetails.setCreatedAt(Utility.dateTime());
 			// userDetails.setPassword(Utility.passwordEncoder(userDto.getPassword()));
@@ -75,10 +80,8 @@ public class UserServiceImpl implements IUserService {
 			mailObject.setSubject("verification");
 
 			rabbitMQSender.send(mailObject);
-			return true;
-		} else {
-			return false;
-		}
+			return userDetails;
+		} 
 
 	}
 
@@ -137,11 +140,6 @@ public class UserServiceImpl implements IUserService {
 		log.info("User Information " + userInfo);
 
 		if (userInfo.isPresent()) {
-			/*
-			 * if ((userInfo.getIsVerified()) &&
-			 * Utility.matches(Utility.passwordEncoder(loginDetails.getPassword()),
-			 * userInfo.getPassword())) {
-			 */
 			if ((userInfo.get().getIsVerified())
 					&& encryption.matches(loginDetails.getPassword(), userInfo.get().getPassword())) {
 
@@ -156,11 +154,11 @@ public class UserServiceImpl implements IUserService {
 
 				MailServiceProvider.sendEmail(loginDetails.getEmail(), "verification", response);
 
-				return null;
+				throw new UserNotVerifiedException("Please verify the email before login OR invalid credentials");
 			}
 
 		} else {
-			return null;
+			throw new EmailNotFoundException(loginDetails.getEmail()+"Please register before login");
 		}
 	}
 

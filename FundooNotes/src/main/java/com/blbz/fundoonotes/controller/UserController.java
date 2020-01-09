@@ -2,12 +2,15 @@ package com.blbz.fundoonotes.controller;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +28,9 @@ import com.blbz.fundoonotes.responses.UserAuthenticationResponse;
 import com.blbz.fundoonotes.service.IUserService;
 import com.blbz.fundoonotes.utility.JwtGenerator;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -44,13 +50,21 @@ public class UserController {
 	 * API to register new user
 	 */
 	@PostMapping(value = "/users/register")
-	public ResponseEntity<Response> registration(@RequestBody UserDto user) {
+	@ApiOperation(value = "Api to register user", response = Response.class)
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "registration successfull"),
+			@ApiResponse(code = 404, message = "The resource you were trying to reach is not found") })
+	public ResponseEntity<Response> registration(@Valid @RequestBody UserDto userDto, BindingResult bindingResult) {
 
-		boolean result = userService.registration(user);
-		return (result)
-				? ResponseEntity.status(HttpStatus.CREATED).body(new Response("registration successfull", 200, user))
-				: ResponseEntity.status(HttpStatus.ALREADY_REPORTED)
-						.body(new Response("user already exist", 400, user));
+		if (bindingResult.hasErrors()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new Response(bindingResult.getAllErrors().get(0).getDefaultMessage(), 400, null));
+		}else {
+			User user = userService.registration(userDto);
+			return user!=null
+					? ResponseEntity.status(HttpStatus.CREATED).body(new Response("registration successfull", 200, user))
+					: ResponseEntity.status(HttpStatus.ALREADY_REPORTED)
+							.body(new Response("user already exist", 400, user));
+		}
 	}
 
 	/*
@@ -69,7 +83,7 @@ public class UserController {
 		} else {
 
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(new UserAuthenticationResponse("Login failed", 400, loginDetails));
+					.body(new UserAuthenticationResponse("Login failed", 404, loginDetails));
 		}
 	}
 

@@ -55,7 +55,7 @@ public class Note {
 	@JoinColumn(name = "userId")
 	private User userNotes;
 
-	@JsonIgnore
+	//@JsonIgnore
 	@ManyToMany
 	@JoinTable(name = "Label_Note", joinColumns = @JoinColumn(name = "note_id", referencedColumnName = "noteId"), inverseJoinColumns = @JoinColumn(name = "label_id", referencedColumnName = "labelId"))
 	private List<Label> labels;

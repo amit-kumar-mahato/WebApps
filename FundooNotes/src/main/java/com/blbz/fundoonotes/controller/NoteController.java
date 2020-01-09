@@ -57,7 +57,7 @@ public class NoteController {
 	/*
 	 * API to get all the notes of one user
 	 */
-	@JsonIgnore
+	//@JsonIgnore
 	@GetMapping("notes")
 	public ResponseEntity<Response> notes(@RequestHeader("token") String token) throws Exception {
 		List<Note> notes = noteService.getAllNotes(token);

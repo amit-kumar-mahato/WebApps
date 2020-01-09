@@ -24,4 +24,11 @@ public class SwaggerConfig {
 	 * Docket(DocumentationType.SWAGGER_2).select().apis(RequestHandlerSelectors.any
 	 * ()) .paths(PathSelectors.any()).build(); }
 	 */
+	
+	/*
+	 * @Bean public SwaggerSpringMvcPlugin customImplementation() {
+	 * SwaggerSpringMvcPlugin ret = new
+	 * SwaggerSpringMvcPlugin(this.springSwaggerConfig); return
+	 * ret.useDefaultResponseMessages(false); }
+	 */
 }

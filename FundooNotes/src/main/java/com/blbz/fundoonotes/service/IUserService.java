@@ -10,7 +10,7 @@ import com.blbz.fundoonotes.model.User;
 
 public interface IUserService {
 
-	boolean registration(UserDto user);
+	User registration(UserDto user);
 
 	List<User> getAllDetails();
 
