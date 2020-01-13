@@ -108,7 +108,13 @@ public class LabelServiceImpl implements LabelService {
 		if (isUserAvailable.isPresent()) {
 			Optional<Label> isLabelAvailable = labelRepository.findById(labelId);
 			if (isLabelAvailable.isPresent()) {
-			//	isLabelAvailable.get().getNoteList().remove();
+				isLabelAvailable.get().setNoteList(null);
+				/*
+				 * List<Note> noteDetails = isLabelAvailable.get().getNoteList(); for(Note n:
+				 * noteDetails) { n.getNoteId(); }
+				 */
+				labelRepository.deleteMapping(labelId);
+				//labelRepository.save(isLabelAvailable.get());
 				labelRepository.deleteById(labelId);
 				return true;
 			}
@@ -149,6 +155,7 @@ public class LabelServiceImpl implements LabelService {
 			Optional<Label> isLabelAvailable = labelRepository.findById(labelId);
 			if (isLabelAvailable.isPresent()) {
 				List<Note> list = isLabelAvailable.get().getNoteList();
+				log.info("Note List :"+list);
 				return list;
 			}
 		}

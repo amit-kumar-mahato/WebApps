@@ -22,6 +22,8 @@ import com.blbz.fundoonotes.model.Note;
 import com.blbz.fundoonotes.responses.Response;
 import com.blbz.fundoonotes.service.LabelService;
 
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class LabelController {
 
@@ -53,7 +55,7 @@ public class LabelController {
 	}
 
 	/*
-	 * API to Remove label from notes
+	 * API to Remove mapping of label from notes
 	 */
 	@DeleteMapping("labels/remove")
 	public ResponseEntity<Response> removeLabel(@RequestHeader("token") String token,
@@ -100,6 +102,7 @@ public class LabelController {
 	 * API to get all notes with same labels
 	 */
 	@GetMapping("labels/getNotes")
+	@ApiOperation(value = "Api to get all notes releated to one label", response = Response.class)
 	public ResponseEntity<Response> getAllNotes(@RequestHeader("token") String token,
 			@RequestParam("labelId") long labelId) throws Exception {
 		List<Note> noteList = labelService.getAllNotes(token, labelId);
@@ -111,6 +114,7 @@ public class LabelController {
 	 * API to add labels with notes
 	 */
 	@PostMapping("addlabels")
+	@ApiOperation(value = "Api to add existing label with note", response = Response.class)
 	public ResponseEntity<Response> addLabelToNotes(@RequestHeader("token") String token,
 			@RequestParam("noteId") long noteId, @RequestParam("labelid") long labelId) {
 		boolean result = labelService.addLabels(token, noteId, labelId);
