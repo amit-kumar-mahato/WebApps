@@ -22,6 +22,8 @@ import com.blbz.fundoonotes.responses.Response;
 import com.blbz.fundoonotes.service.INoteService;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import io.swagger.annotations.ApiOperation;
+
 @RestController
 public class NoteController {
 
@@ -32,6 +34,7 @@ public class NoteController {
 	 * API to create notes
 	 */
 	@PostMapping("notes/create")
+	@ApiOperation(value = "Api to create new note", response = Response.class)
 	public ResponseEntity<Response> createNote(@RequestBody NoteDto noteDto, @RequestHeader("token") String token)
 			throws Exception {
 
@@ -44,6 +47,7 @@ public class NoteController {
 	 * API to delete particular notes
 	 */
 	@DeleteMapping("notes/delete/{noteId}")
+	@ApiOperation(value = "Api to add notes into trash", response = Response.class)
 	public ResponseEntity<Response> deleteOneNote(@PathVariable("noteId") long noteId,
 			@RequestHeader("token") String token) throws Exception {
 
@@ -59,6 +63,7 @@ public class NoteController {
 	 */
 	//@JsonIgnore
 	@GetMapping("notes")
+	@ApiOperation(value = "Api to get notes list", response = Response.class)
 	public ResponseEntity<Response> notes(@RequestHeader("token") String token) throws Exception {
 		List<Note> notes = noteService.getAllNotes(token);
 		return ResponseEntity.status(HttpStatus.OK).body(new Response("Notes are", 200, notes));
@@ -68,6 +73,7 @@ public class NoteController {
 	 * API to make note Archive
 	 */
 	@PutMapping("notes/archive/{noteId}")
+	@ApiOperation(value = "Api to make note archive", response = Response.class)
 	public ResponseEntity<Response> makeArchive(@PathVariable("noteId") long noteId,
 			@RequestHeader("token") String token){
 		boolean result = noteService.isArchived(noteId, token);
@@ -79,6 +85,7 @@ public class NoteController {
 	 * API to add color
 	 */
 	@PutMapping("notes/color/{noteId}")
+	@ApiOperation(value = "Api to add color", response = Response.class)
 	public ResponseEntity<Response> addColor(@RequestParam("color") String color, @RequestHeader("token") String token,
 			@PathVariable("noteId") long noteId) {
 		boolean result = noteService.addColor(color, token, noteId);
@@ -90,6 +97,7 @@ public class NoteController {
 	 * API to make note pinned
 	 */
 	@PutMapping("notes/pin/{noteId}")
+	@ApiOperation(value = "Api to make note pinned", response = Response.class)
 	public ResponseEntity<Response> pinned(@PathVariable("noteId") long noteId, @RequestHeader("token") String token)
 			throws Exception {
 		boolean result = noteService.pinnedNotes(noteId, token);
@@ -101,6 +109,7 @@ public class NoteController {
 	 * API to set reminder
 	 */
 	@PutMapping("notes/reminder/{noteId}")
+	@ApiOperation(value = "Api to set remainder", response = Response.class)
 	public ResponseEntity<Response> reminder(@PathVariable("noteId") long noteId, @RequestHeader("token") String token,
 			@RequestBody ReminderDto reminderDto) throws Exception {
 		boolean result = noteService.setReminder(noteId, token, reminderDto);
@@ -112,6 +121,7 @@ public class NoteController {
 	 * API to delete notes permanently
 	 */
 	@DeleteMapping("notes/permanentDelete/{noteId}")
+	@ApiOperation(value = "Api to delete note permanently", response = Response.class)
 	public ResponseEntity<Response> permanentDelete(@PathVariable("noteId") long noteId,
 			@RequestHeader("token") String token) throws Exception {
 		boolean result = noteService.permanentDelete(noteId, token);
@@ -123,6 +133,7 @@ public class NoteController {
 	 * API to search note
 	 */
 	@GetMapping("notes/title")
+	@ApiOperation(value = "Api to search note based on title", response = Response.class)
 	public ResponseEntity<Response> searchByTitle(@RequestParam("title") String title,
 			@RequestHeader("token") String token) {
 		List<Note> noteList = noteService.searchByTitle(title);

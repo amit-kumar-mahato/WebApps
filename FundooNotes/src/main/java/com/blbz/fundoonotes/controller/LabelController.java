@@ -34,7 +34,8 @@ public class LabelController {
 	 * API to create label for note
 	 */
 	@PostMapping("labels/create")
-	public ResponseEntity<Response> createLabel(@RequestBody LabelDto labelDto, @RequestHeader("token") String token) throws LabelAlreadyExistException{
+	@ApiOperation(value = "Api to create label", response = Response.class)
+	public ResponseEntity<Response> createLabel(@RequestBody LabelDto labelDto, @RequestHeader("token") String token){
 
 		boolean result = labelService.createlabel(labelDto, token);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is Created", 200))
@@ -47,7 +48,7 @@ public class LabelController {
 	 */
 	@PostMapping("labels/create/{noteId}")
 	public ResponseEntity<Response> labelMapToNote(@RequestBody LabelDto labelDto, @PathVariable("noteId") long noteId,
-			@RequestHeader("token") String token) throws LabelAlreadyExistException {
+			@RequestHeader("token") String token){
 		boolean result = labelService.createOrMapWithNote(labelDto, noteId, token);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is created successfully", 200))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -58,6 +59,7 @@ public class LabelController {
 	 * API to Remove mapping of label from notes
 	 */
 	@DeleteMapping("labels/remove")
+	@ApiOperation(value = "Api to remove label from note", response = Response.class)
 	public ResponseEntity<Response> removeLabel(@RequestHeader("token") String token,
 			@RequestParam("noteId") long noteId, @RequestParam("labelId") long labelId) {
 		boolean result = labelService.removeLabels(token, noteId, labelId);
@@ -69,6 +71,7 @@ public class LabelController {
 	 * API to delete labels permanently
 	 */
 	@DeleteMapping("labels/delete")
+	@ApiOperation(value = "Api to delete label", response = Response.class)
 	public ResponseEntity<Response> deletelabel(@RequestHeader("token") String token,
 			@RequestParam("labelId") long labelId) throws Exception {
 		boolean result = labelService.deletepermanently(token, labelId);
@@ -81,6 +84,7 @@ public class LabelController {
 	 * API to update the label
 	 */
 	@PutMapping("labels/update")
+	@ApiOperation(value = "Api to update label", response = Response.class)
 	public ResponseEntity<Response> updateLabel(@RequestHeader("token") String token,
 			@RequestParam("labelId") long labelId, @RequestBody LabelDto labelDto) throws Exception {
 		boolean result = labelService.updateLabel(token, labelId, labelDto);
@@ -93,6 +97,7 @@ public class LabelController {
 	 * API to get All Labels
 	 */
 	@GetMapping("labels")
+	@ApiOperation(value = "Api to get all labels", response = Response.class)
 	public ResponseEntity<Response> getAllLabels(@RequestHeader("token") String token) throws Exception {
 		List<Label> labelList = labelService.getAllLabels(token);
 		return ResponseEntity.status(HttpStatus.OK).body(new Response("Label List are", 200, labelList));

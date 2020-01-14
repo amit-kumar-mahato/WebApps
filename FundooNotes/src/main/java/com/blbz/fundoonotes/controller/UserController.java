@@ -4,13 +4,12 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +32,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @Slf4j
 public class UserController {
@@ -71,6 +71,7 @@ public class UserController {
 	 * Api for user authentication
 	 */
 	@PostMapping("/users/login")
+	@ApiOperation(value = "Api for Login", response = Response.class)
 	@CachePut(key = "#token", value = "userId")
 	public ResponseEntity<UserAuthenticationResponse> login(@RequestBody LoginDetails loginDetails) {
 
@@ -102,6 +103,7 @@ public class UserController {
 	/*
 	 * API for forgot password
 	 */
+	@ApiOperation(value = "Api for forgotpassword", response = Response.class)
 	@PostMapping("users/forgotpassword")
 	public ResponseEntity<Response> forgotPassword(@RequestParam("email") String email) {
 		log.info("Email :" + email);
@@ -115,6 +117,7 @@ public class UserController {
 	 * API to update password
 	 */
 	@PostMapping("users/updatepassword/{token}")
+	@ApiOperation(value = "Api for update password", response = Response.class)
 	public ResponseEntity<Response> updatePassword(@PathVariable("token") String token,
 			@RequestBody Updatepassword pswd) {
 		log.info("Token :" + token);
@@ -131,6 +134,7 @@ public class UserController {
 	 * API to get User list
 	 */
 	@GetMapping("users")
+	@ApiOperation(value = "Api to get user list", response = Response.class)
 	public ResponseEntity<Response> usersList() {
 		List<User> userList = (List<User>) userRepository.findAll();
 		return ResponseEntity.status(HttpStatus.OK).body(new Response("Users are", 200, userList));

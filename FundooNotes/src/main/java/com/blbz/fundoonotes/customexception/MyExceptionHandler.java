@@ -13,7 +13,7 @@ import com.blbz.fundoonotes.responses.Response;
 @RestControllerAdvice
 public class MyExceptionHandler extends ResponseEntityExceptionHandler{
 
-	@ExceptionHandler(EmailAlreadyExistException.class)
+	@ExceptionHandler({EmailAlreadyExistException.class,LabelAlreadyExistException.class})
 	public ResponseEntity<Response> handleSpecificException(Exception ex){
 		Response response = new Response(ex.getMessage(), 400);
 		return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);

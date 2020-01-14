@@ -56,20 +56,21 @@ public class LabelServiceImpl implements LabelService {
 				labelRepository.save(label);
 				return true;
 			} else {
-				//throw new LabelAlreadyExistException("Label is already exist...");
+				throw new LabelAlreadyExistException(labelDto.getName()+" is already exist...");
 			}
 		}
 		return false;
 	}
 
 	@Override
-	public boolean createOrMapWithNote(LabelDto labelDto, long noteId, String token) throws LabelAlreadyExistException {
+	public boolean createOrMapWithNote(LabelDto labelDto, long noteId, String token){
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
 			String labelName = labelDto.getName();
 			LabelDto labelInfo = labelRepository.findOneByName(labelName);
 			if (labelInfo == null) {
+				log.info("Label is ");
 				Label label = modelMapper.map(labelDto, Label.class);
 				label.setUserLabel(isUserAvailable.get());
 				labelRepository.save(label);

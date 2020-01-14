@@ -12,6 +12,7 @@ import javax.mail.internet.MimeMessage;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
@@ -24,10 +25,14 @@ public class MailServiceProvider {
 	 * @Autowired private static JavaMailSender javaMailSender;
 	 */
 
+	@Value("${EMAIL}")
+	private String email;
+	@Value("${EMAILPSWD}")
+	private String pswd;
 	public static void sendEmail(String toEmail, String subject, String body) {
 
-		String fromEmail = "akmahato2868@gmail.com";//Enter your email id
-		String password = "mahatoamit"; //password
+		String fromEmail = System.getenv("EMAIL");//Setting email at runtime environment
+		String password = System.getenv("EMAILPSWD");//Setting password at runtime environment
 
 		Properties prop = new Properties();
 		prop.put("mail.smtp.auth", "true");

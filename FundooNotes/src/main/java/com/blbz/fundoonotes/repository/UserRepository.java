@@ -14,7 +14,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
 	User findFirstByOrderByUserIdDesc();
 
-	Optional<User> findOneByUserIdAndPassword(long userId, Object pswd);
+	Optional<User> findOneByUserIdAndPswd(long userId, Object pswd);
 
 	Optional<User> findOneByEmail(String email);
 

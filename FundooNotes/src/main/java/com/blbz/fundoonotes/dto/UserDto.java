@@ -13,11 +13,9 @@ public class UserDto {
 	@NotBlank
 	private String lastName;
 	@NotBlank
-	private String userName;
+	private String phone;
 	@NotBlank
-	private String mobile;
-	@NotBlank
-	private String password;
+	private String pswd;
 	@NotBlank
 	@Email
 	private String email;

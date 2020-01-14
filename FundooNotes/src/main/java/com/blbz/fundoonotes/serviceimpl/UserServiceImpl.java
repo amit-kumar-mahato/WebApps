@@ -67,8 +67,8 @@ public class UserServiceImpl implements IUserService {
 			userDetails = modelMapper.map(userDto, User.class);
 			userDetails.setCreatedAt(Utility.dateTime());
 			// userDetails.setPassword(Utility.passwordEncoder(userDto.getPassword()));
-			String password = encryption.encode(userDto.getPassword());
-			userDetails.setPassword(password);
+			String password = encryption.encode(userDto.getPswd());
+			userDetails.setPswd(password);
 
 			userRepository.save(userDetails);
 
@@ -99,8 +99,6 @@ public class UserServiceImpl implements IUserService {
 			map.put("UserId", isUserIdAvailable.get().getUserId());
 			map.put("FirstName", isUserIdAvailable.get().getFirstName());
 			map.put("LastName", isUserIdAvailable.get().getLastName());
-			map.put("UserName", isUserIdAvailable.get().getUserName());
-			map.put("ContactNumber", isUserIdAvailable.get().getMobile());
 		} else {
 
 		}
@@ -110,11 +108,11 @@ public class UserServiceImpl implements IUserService {
 	@Override
 	public boolean updateDetails(User user) {
 		long userId = user.getUserId();
-		String pswd = user.getPassword();
+		String pswd = user.getPswd();
 
 		String encrpswd = Utility.passwordEncoder(pswd);
 
-		Optional<User> userinfo = userRepository.findOneByUserIdAndPassword(userId, encrpswd);
+		Optional<User> userinfo = userRepository.findOneByUserIdAndPswd(userId, encrpswd);
 		if (userinfo.isPresent()) {
 			userRepository.save(user);
 			return true;
@@ -140,8 +138,8 @@ public class UserServiceImpl implements IUserService {
 		log.info("User Information " + userInfo);
 
 		if (userInfo.isPresent()) {
-			if ((userInfo.get().getIsVerified())
-					&& encryption.matches(loginDetails.getPassword(), userInfo.get().getPassword())) {
+			if ((userInfo.get().isVerified())
+					&& encryption.matches(loginDetails.getPassword(), userInfo.get().getPswd())) {
 
 				log.info("Generated Token :" + generate.jwtToken(userInfo.get().getUserId()));
 
@@ -169,7 +167,7 @@ public class UserServiceImpl implements IUserService {
 		Long id = (long) generate.parseJWT(token);
 		Optional<User> userInfo = userRepository.findById(id);
 		if (userInfo.isPresent()) {
-			userInfo.get().setIsVerified(true);
+			userInfo.get().setVerified(true);
 			userRepository.save(userInfo.get());
 			return true;
 		}
@@ -179,7 +177,7 @@ public class UserServiceImpl implements IUserService {
 	@Override
 	public boolean isUserAvailable(String email) {
 		Optional<User> isUserAvailable = userRepository.findOneByEmail(email);
-		if (isUserAvailable.isPresent() && isUserAvailable.get().getIsVerified() == true) {
+		if (isUserAvailable.isPresent() && isUserAvailable.get().isVerified() == true) {
 			String response = mailresponse.formMessage("http://localhost:8081/users/passwordupdate",
 					generate.jwtToken(isUserAvailable.get().getUserId()));
 			MailServiceProvider.sendEmail(isUserAvailable.get().getEmail(), "Update Password", response);
@@ -197,7 +195,7 @@ public class UserServiceImpl implements IUserService {
 			long id = generate.parseJWT(token);
 			Optional<User> isIdAvailable = userRepository.findById(id);
 			if (isIdAvailable.isPresent()) {
-				isIdAvailable.get().setPassword(Utility.passwordEncoder(pswd.getNewPassword()));
+				isIdAvailable.get().setPswd(Utility.passwordEncoder(pswd.getNewPassword()));
 				userRepository.save(isIdAvailable.get());
 				return true;
 			}
