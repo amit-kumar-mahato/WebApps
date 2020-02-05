@@ -26,7 +26,7 @@ public interface IUserService {
 
 	boolean isUserAvailable(String email);
 
-	boolean updatePassword(String token, Updatepassword pswd);
+	User updatePassword(String token, Updatepassword pswd);
 
 	List<User> getAllUsers();
 
