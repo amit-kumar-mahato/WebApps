@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,10 +59,11 @@ public class UserController {
 		if (bindingResult.hasErrors()) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(new Response(bindingResult.getAllErrors().get(0).getDefaultMessage(), 400, null));
-		}else {
+		} else {
 			User user = userService.registration(userDto);
-			return user!=null
-					? ResponseEntity.status(HttpStatus.CREATED).body(new Response("registration successfull", 200, user))
+			return user != null
+					? ResponseEntity.status(HttpStatus.CREATED)
+							.body(new Response("registration successfull", 200, user))
 					: ResponseEntity.status(HttpStatus.ALREADY_REPORTED)
 							.body(new Response("user already exist", 400, user));
 		}
@@ -72,15 +74,13 @@ public class UserController {
 	 */
 	@PostMapping("/users/login")
 	@ApiOperation(value = "Api for Login", response = Response.class)
-	@CachePut(key = "#token", value = "userId")
 	public ResponseEntity<UserAuthenticationResponse> login(@RequestBody LoginDetails loginDetails) {
 
 		User userInformation = userService.login(loginDetails);
 		loginDetails.setPassword("******");
 		if (userInformation != null) {
 			String token = generate.jwtToken(userInformation.getUserId());
-			return ResponseEntity.status(HttpStatus.ACCEPTED).header("login successfull", loginDetails.getEmail())
-					.body(new UserAuthenticationResponse(token, 200, loginDetails));
+			return ResponseEntity.status(HttpStatus.ACCEPTED).body(new UserAuthenticationResponse(token, 200, loginDetails));
 		} else {
 
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -94,7 +94,7 @@ public class UserController {
 	@GetMapping("/users/verify/{token}")
 	public ResponseEntity<Response> userVerification(@PathVariable("token") String token) {
 
-		System.out.println("token for verification" + token);
+		log.info("token for verification" + token);
 		boolean update = userService.verify(token);
 		return (update) ? ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("verified", 200))
 				: ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("not verified", 400));
@@ -116,18 +116,32 @@ public class UserController {
 	/*
 	 * API to update password
 	 */
-	@PostMapping("users/updatepassword/{token}")
+	@PutMapping("users/updatepassword/{token}")
 	@ApiOperation(value = "Api for update password", response = Response.class)
-	public ResponseEntity<Response> updatePassword(@PathVariable("token") String token,
-			@RequestBody Updatepassword pswd) {
+	public ResponseEntity<Response> updatePassword(@Valid @PathVariable("token") String token,
+			@RequestBody Updatepassword pswd, BindingResult bindingResult) {
 		log.info("Token :" + token);
 		log.info("New Password :" + pswd.getNewPassword());
 
-		boolean result = userService.updatePassword(token, pswd);
-		return (result)
-				? ResponseEntity.status(HttpStatus.ACCEPTED).body(new Response("Password is Update Successfully", 200))
-				: ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-						.body(new Response("Password and Confirm Password doesn't matched", 400));
+		if (bindingResult.hasErrors()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(new Response(bindingResult.getAllErrors().get(0).getDefaultMessage(), 400, null));
+		} 
+			User userInfo = userService.updatePassword(token, pswd);
+			userInfo.setPswd("*******");
+			
+			return userInfo != null
+					? ResponseEntity.status(HttpStatus.OK)
+							.body(new Response("Password is Update Successfully", 200, userInfo))
+					: ResponseEntity.status(HttpStatus.NOT_MODIFIED)
+							.body(new Response("Password and Confirm Password doesn't matched", 400));
+		/*
+		 * boolean result = userService.updatePassword(token, pswd); return (result) ?
+		 * ResponseEntity.status(HttpStatus.ACCEPTED).body(new
+		 * Response("Password is Update Successfully", 200)) :
+		 * ResponseEntity.status(HttpStatus.NOT_MODIFIED) .body(new
+		 * Response("Password and Confirm Password doesn't matched", 400));
+		 */
 	}
 
 	/*
