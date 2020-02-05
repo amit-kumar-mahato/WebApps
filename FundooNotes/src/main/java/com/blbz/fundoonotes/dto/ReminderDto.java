@@ -1,24 +1,11 @@
 package com.blbz.fundoonotes.dto;
 
-import java.time.LocalDateTime;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-/*
-@Getter
-@Setter*/
+@Data
 public class ReminderDto {
-
 	
-	private LocalDateTime time;
+	private String datetime;
 
-	public LocalDateTime getTime() {
-		return time;
-	}
-
-	public void setTime(LocalDateTime time) {
-		this.time = time;
-	}
-	
 }
