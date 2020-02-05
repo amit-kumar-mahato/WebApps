@@ -135,9 +135,9 @@ public class UserServiceImpl implements IUserService {
 	@Override
 	public User login(LoginDetails loginDetails) {
 		Optional<User> userInfo = userRepository.findOneByEmail(loginDetails.getEmail());
-		log.info("User Information " + userInfo);
 
 		if (userInfo.isPresent()) {
+			log.info("User Information " + userInfo);
 			if ((userInfo.get().isVerified())
 					&& encryption.matches(loginDetails.getPassword(), userInfo.get().getPswd())) {
 
@@ -152,7 +152,7 @@ public class UserServiceImpl implements IUserService {
 
 				MailServiceProvider.sendEmail(loginDetails.getEmail(), "verification", response);
 
-				throw new UserNotVerifiedException("Please verify the email before login OR invalid credentials");
+				throw new UserNotVerifiedException("Invalid credentials");
 			}
 
 		} else {
@@ -178,7 +178,7 @@ public class UserServiceImpl implements IUserService {
 	public boolean isUserAvailable(String email) {
 		Optional<User> isUserAvailable = userRepository.findOneByEmail(email);
 		if (isUserAvailable.isPresent() && isUserAvailable.get().isVerified() == true) {
-			String response = mailresponse.formMessage("http://localhost:8081/users/passwordupdate",
+			String response = mailresponse.formMessage("http://localhost:3000/updatePassword",
 					generate.jwtToken(isUserAvailable.get().getUserId()));
 			MailServiceProvider.sendEmail(isUserAvailable.get().getEmail(), "Update Password", response);
 
@@ -189,18 +189,19 @@ public class UserServiceImpl implements IUserService {
 	}
 
 	@Override
-	public boolean updatePassword(String token, Updatepassword pswd) {
+	public User updatePassword(String token, Updatepassword pswd) {
 		if (pswd.getNewPassword().equals(pswd.getCnfPassword())) {
 			log.info("Getting id from token :" + generate.parseJWT(token));
 			long id = generate.parseJWT(token);
-			Optional<User> isIdAvailable = userRepository.findById(id);
-			if (isIdAvailable.isPresent()) {
-				isIdAvailable.get().setPswd(Utility.passwordEncoder(pswd.getNewPassword()));
-				userRepository.save(isIdAvailable.get());
-				return true;
+			Optional<User> isUserIdAvailable = userRepository.findById(id);
+			if (isUserIdAvailable.isPresent()) {
+				String password = encryption.encode(pswd.getNewPassword());
+				isUserIdAvailable.get().setPswd(password);
+				userRepository.save(isUserIdAvailable.get());
+				return isUserIdAvailable.get();
 			}
 		}
-		return false;
+		return null;
 	}
 
 	@Override
