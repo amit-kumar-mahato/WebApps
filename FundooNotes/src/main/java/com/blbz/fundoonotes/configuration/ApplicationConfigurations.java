@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import com.blbz.fundoonotes.model.Collaborator;
 import com.blbz.fundoonotes.model.Label;
 import com.blbz.fundoonotes.model.Note;
 

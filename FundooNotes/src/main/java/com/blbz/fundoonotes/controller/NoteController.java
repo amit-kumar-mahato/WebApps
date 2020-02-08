@@ -53,8 +53,8 @@ public class NoteController {
 				: ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Something went wrong", 400));
 	}
 
-	/*
-	 * API to delete particular notes
+	/*	
+	 * Api to add notes into trash
 	 */
 	@DeleteMapping("notes/delete/{noteId}")
 	@ApiOperation(value = "Api to add notes into trash", response = Response.class)

@@ -40,11 +40,4 @@ public class User {
 	
 	private String createdAt;
 	
-	public String getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(String string) {
-		this.createdAt = string;
-	}
 }

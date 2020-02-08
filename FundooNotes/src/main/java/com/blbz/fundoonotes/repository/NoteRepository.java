@@ -14,7 +14,7 @@ import com.blbz.fundoonotes.model.Note;
 @Transactional
 public interface NoteRepository extends CrudRepository<Note, Long> {
 
-	@Query(value = "SELECT * FROM note where user_id=? AND is_trash=false AND is_archiev=false", nativeQuery = true)
+	@Query(value = "SELECT * FROM note where user_id=?", nativeQuery = true)
 	List<Note> getAllNotes(long id);
 
 	@Modifying
