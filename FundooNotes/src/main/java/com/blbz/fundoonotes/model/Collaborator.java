@@ -7,12 +7,15 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Data;
 
 @Entity
 @Data
+@Component
 public class Collaborator {
 	
 	@Id

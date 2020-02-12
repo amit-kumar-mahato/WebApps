@@ -67,7 +67,7 @@ public class NoteServiceImpl implements INoteService {
 			note.setArchiev(false);
 			note.setPin(false);
 			note.setTrash(false);
-			note.setColour("blue");
+			note.setColour("white");
 
 			Note noteInfo = noteRepository.save(note);
 			
