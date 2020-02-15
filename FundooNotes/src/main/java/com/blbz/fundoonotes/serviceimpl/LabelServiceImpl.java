@@ -44,19 +44,23 @@ public class LabelServiceImpl implements LabelService {
 	Label label;
 
 	@Override
-	public boolean createlabel(LabelDto labelDto, String token) {
+	public boolean createlabel(String labelName, String token) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
-			String labelName = labelDto.getName();
-			LabelDto labelInfo = labelRepository.findOneByName(labelName);
-			if (labelInfo == null) {
-				label = modelMapper.map(labelDto, Label.class);
+			//String labelName = labelDto.getName();
+			Label labelInfo = labelRepository.findByName(labelName);
+			if (labelInfo==null) {
+				//label = modelMapper.map(labelDto, Label.class);
+				System.out.println("create label");
 				label.setUserLabel(isUserAvailable.get());
+				label.setName(labelName);
+				label.setLabelId(0);
 				labelRepository.save(label);
 				return true;
 			} else {
-				throw new LabelAlreadyExistException(labelDto.getName()+" is already exist...");
+				log.info("Else Block :");
+				throw new LabelAlreadyExistException("Label is already exist...");
 			}
 		}
 		return false;

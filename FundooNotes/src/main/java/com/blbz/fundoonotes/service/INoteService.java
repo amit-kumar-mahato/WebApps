@@ -32,4 +32,6 @@ public interface INoteService {
 
 	Note updateNoteDetails(long noteId, String token, NoteDto noteDto) throws NoteIdNotFoundException;
 
+	boolean deleteReminder(long noteId, String token);
+
 }

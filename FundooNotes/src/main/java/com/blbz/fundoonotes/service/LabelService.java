@@ -9,7 +9,7 @@ import com.blbz.fundoonotes.model.Note;
 
 public interface LabelService {
 
-	boolean createlabel(LabelDto labelDto, String token) throws LabelAlreadyExistException;
+	boolean createlabel(String labelname, String token) throws LabelAlreadyExistException;
 
 	boolean createOrMapWithNote(LabelDto labelDto, long noteId, String token) throws LabelAlreadyExistException;
 

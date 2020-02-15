@@ -250,4 +250,18 @@ public class NoteServiceImpl implements INoteService {
 		}
 		return null;
 	}
+
+	@Override
+	public boolean deleteReminder(long noteId, String token) {
+		Optional<User> isUserAvailable = userRepository.findById(getRedisCacheId(token));
+		if(isUserAvailable.isPresent()) {
+			Optional<Note> noteInfo = noteRepository.findById(noteId);
+			if (noteInfo.isPresent()) {
+				noteInfo.get().setReminder(null);
+				noteRepository.save(noteInfo.get());
+				return true;
+			}
+		}
+		throw new NoteIdNotFoundException("The note you are trying to update is not available");
+	}
 }

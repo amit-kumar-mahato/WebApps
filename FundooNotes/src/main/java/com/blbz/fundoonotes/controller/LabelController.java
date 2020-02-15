@@ -31,13 +31,14 @@ public class LabelController {
 	LabelService labelService;
 
 	/*
-	 * API to create label for note
+	 * API to create label for user
 	 */
 	@PostMapping("labels/create")
-	@ApiOperation(value = "Api to create label", response = Response.class)
-	public ResponseEntity<Response> createLabel(@RequestBody LabelDto labelDto, @RequestHeader("token") String token){
-
-		boolean result = labelService.createlabel(labelDto, token);
+	@ApiOperation(value = "Api to create user label", response = Response.class)
+	public ResponseEntity<Response> createLabel(@RequestParam String labelName, @RequestHeader("token") String token){
+		System.out.println("create label controller");
+		System.out.println(labelName);
+		boolean result = labelService.createlabel(labelName, token);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is Created", 200))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Label is Already exist", 400));
 
@@ -51,7 +52,7 @@ public class LabelController {
 			@RequestHeader("token") String token){
 		boolean result = labelService.createOrMapWithNote(labelDto, noteId, token);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is created successfully", 200))
-				: ResponseEntity.status(HttpStatus.NOT_FOUND)
+				: ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body(new Response("The label you are trying to create is already exist!!!", 400));
 	}
 

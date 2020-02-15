@@ -53,7 +53,7 @@ public class NoteController {
 				: ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Response("Something went wrong", 400));
 	}
 
-	/*	
+	/*
 	 * Api to add notes into trash
 	 */
 	@DeleteMapping("notes/delete/{noteId}")
@@ -125,6 +125,17 @@ public class NoteController {
 		boolean result = noteService.setReminder(noteId, token, reminderDto);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Reminder is Added Successfully", 200))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Something went wrong", 400));
+	}
+
+	/*
+	 * API to delete reminder from note
+	 */
+
+	@DeleteMapping("reminder/delete")
+	public ResponseEntity<Response> deleteReminder(@RequestParam("noteId") long noteId,
+			@RequestHeader("token") String token) {
+		return (noteService.deleteReminder(noteId, token)) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Reminder is delted from note", 200))
+				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Id not found", 404));
 	}
 
 	/*

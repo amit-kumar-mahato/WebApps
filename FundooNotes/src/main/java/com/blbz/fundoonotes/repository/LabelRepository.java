@@ -11,6 +11,9 @@ import com.blbz.fundoonotes.model.Label;
 public interface LabelRepository extends CrudRepository<Label, Long>{
 
 	LabelDto findOneByName(String labelName);
+	
+	@Query(value = "Select * from label where name=?", nativeQuery = true)
+	Label findByName(String labelName);
 
 	@Transactional
 	@Modifying
