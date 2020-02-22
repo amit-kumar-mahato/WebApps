@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.blbz.fundoonotes.customexception.LabelAlreadyExistException;
+import com.blbz.fundoonotes.customexception.UserNotFoundException;
 import com.blbz.fundoonotes.dto.LabelDto;
 import com.blbz.fundoonotes.model.Label;
 import com.blbz.fundoonotes.model.Note;
@@ -35,11 +36,11 @@ public class LabelController {
 	 */
 	@PostMapping("labels/create")
 	@ApiOperation(value = "Api to create user label", response = Response.class)
-	public ResponseEntity<Response> createLabel(@RequestParam String labelName, @RequestHeader("token") String token){
+	public ResponseEntity<Response> createLabel(@RequestParam String labelName, @RequestHeader("token") String token) throws LabelAlreadyExistException, UserNotFoundException{
 		System.out.println("create label controller");
 		System.out.println(labelName);
-		boolean result = labelService.createlabel(labelName, token);
-		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is Created", 200))
+		Label result = labelService.createlabel(labelName, token);
+		return (result!=null) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is Created", 200,result))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Label is Already exist", 400));
 
 	}
@@ -62,8 +63,8 @@ public class LabelController {
 	@DeleteMapping("labels/remove")
 	@ApiOperation(value = "Api to remove label from note", response = Response.class)
 	public ResponseEntity<Response> removeLabel(@RequestHeader("token") String token,
-			@RequestParam("noteId") long noteId, @RequestParam("labelId") long labelId) {
-		boolean result = labelService.removeLabels(token, noteId, labelId);
+			@RequestParam("noteId") long noteId, @RequestParam("labelText") String labelText) {
+		boolean result = labelService.removeLabels(token, noteId, labelText);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is Removed Successfully", 200))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Something went wrong", 400));
 	}
@@ -87,9 +88,9 @@ public class LabelController {
 	@PutMapping("labels/update")
 	@ApiOperation(value = "Api to update label", response = Response.class)
 	public ResponseEntity<Response> updateLabel(@RequestHeader("token") String token,
-			@RequestParam("labelId") long labelId, @RequestBody LabelDto labelDto) throws Exception {
-		boolean result = labelService.updateLabel(token, labelId, labelDto);
-		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is updated successfully", 200))
+			@RequestParam("labelId") long labelId, @RequestBody LabelDto labelDto) {
+		Label result = labelService.updateLabel(token, labelId, labelDto);
+		return (result!=null) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is updated successfully", 200,result))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND)
 						.body(new Response("The label you are trying to update is not available", 400));
 	}
@@ -122,8 +123,8 @@ public class LabelController {
 	@PostMapping("addlabels")
 	@ApiOperation(value = "Api to add existing label with note", response = Response.class)
 	public ResponseEntity<Response> addLabelToNotes(@RequestHeader("token") String token,
-			@RequestParam("noteId") long noteId, @RequestParam("labelid") long labelId) {
-		boolean result = labelService.addLabels(token, noteId, labelId);
+			@RequestParam("noteId") long noteId, @RequestParam("labelName") String labelName) {
+		boolean result = labelService.addLabels(token, noteId, labelName);
 		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Label is added to the notes", 200))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Something went wrong", 400));
 	}

@@ -3,12 +3,14 @@ package com.blbz.fundoonotes.serviceimpl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.blbz.fundoonotes.customexception.LabelAlreadyExistException;
+import com.blbz.fundoonotes.customexception.UserNotFoundException;
 import com.blbz.fundoonotes.dto.LabelDto;
 import com.blbz.fundoonotes.model.Label;
 import com.blbz.fundoonotes.model.Note;
@@ -44,30 +46,29 @@ public class LabelServiceImpl implements LabelService {
 	Label label;
 
 	@Override
-	public boolean createlabel(String labelName, String token) {
+	public Label createlabel(String labelName, String token) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
-			//String labelName = labelDto.getName();
+			// String labelName = labelDto.getName();
 			Label labelInfo = labelRepository.findByName(labelName);
-			if (labelInfo==null) {
-				//label = modelMapper.map(labelDto, Label.class);
+			if (labelInfo == null) {
+				// label = modelMapper.map(labelDto, Label.class);
 				System.out.println("create label");
 				label.setUserLabel(isUserAvailable.get());
 				label.setName(labelName);
 				label.setLabelId(0);
-				labelRepository.save(label);
-				return true;
+				return labelRepository.save(label);
 			} else {
 				log.info("Else Block :");
 				throw new LabelAlreadyExistException("Label is already exist...");
 			}
 		}
-		return false;
+		throw new UserNotFoundException("Invalid User Id");
 	}
 
 	@Override
-	public boolean createOrMapWithNote(LabelDto labelDto, long noteId, String token){
+	public boolean createOrMapWithNote(LabelDto labelDto, long noteId, String token) {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
@@ -75,13 +76,13 @@ public class LabelServiceImpl implements LabelService {
 			LabelDto labelInfo = labelRepository.findOneByName(labelName);
 			if (labelInfo == null) {
 				log.info("Label is ");
-				Label label = modelMapper.map(labelDto, Label.class);
-				label.setUserLabel(isUserAvailable.get());
-				labelRepository.save(label);
+				Label labelDetails = modelMapper.map(labelDto, Label.class);
+				labelDetails.setUserLabel(isUserAvailable.get());
+				labelRepository.save(labelDetails);
 
 				Optional<Note> noteInfo = noterepository.findById(noteId);
 				if (noteInfo.isPresent()) {
-					noteInfo.get().getLabels().add(label);
+					noteInfo.get().getLabels().add(labelDetails);
 					noterepository.save(noteInfo.get());
 					return true;
 				}
@@ -93,15 +94,14 @@ public class LabelServiceImpl implements LabelService {
 	}
 
 	@Override
-	public boolean removeLabels(String token, long noteId, long labelId) {
+	public boolean removeLabels(String token, long noteId, String labelText) {
 		Optional<Note> isNoteAvailable = noterepository.findById(noteId);
 		if (isNoteAvailable.isPresent()) {
-			Optional<Label> isLabelAvailable = labelRepository.findById(labelId);
-			if (isLabelAvailable.isPresent()) {
-				isNoteAvailable.get().getLabels().remove(isLabelAvailable.get());
-				noterepository.save(isNoteAvailable.get());
-				return true;
-			}
+			isNoteAvailable.get().setLabels(isNoteAvailable.get().getLabels().stream()
+					.filter(lbl -> !lbl.getName().equals(labelText)).collect(Collectors.toList()));
+			noterepository.save(isNoteAvailable.get());
+			return true;
+
 		}
 		return false;
 	}
@@ -119,7 +119,7 @@ public class LabelServiceImpl implements LabelService {
 				 * noteDetails) { n.getNoteId(); }
 				 */
 				labelRepository.deleteMapping(labelId);
-				//labelRepository.save(isLabelAvailable.get());
+				// labelRepository.save(isLabelAvailable.get());
 				labelRepository.deleteById(labelId);
 				return true;
 			}
@@ -128,58 +128,60 @@ public class LabelServiceImpl implements LabelService {
 	}
 
 	@Override
-	public boolean updateLabel(String token, long labelId, LabelDto labelDto) {
+	public Label updateLabel(String token, long labelId, LabelDto labelDto) throws UserNotFoundException {
 		long userId = jwtGenerator.parseJWT(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
 			Optional<Label> isLabelAvailable = labelRepository.findById(labelId);
 			if (isLabelAvailable.isPresent()) {
 				isLabelAvailable.get().setName(labelDto.getName());
-				labelRepository.save(isLabelAvailable.get());
-				return true;
+				return labelRepository.save(isLabelAvailable.get());
 			}
 		}
-		return false;
+		throw new UserNotFoundException("Invalid User");
 	}
 
 	@Override
 	public List<Label> getAllLabels(String token) {
 		long userId = jwtGenerator.parseJWT(token);
+		List<Label> labelList = null;
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
-			return (List<Label>) labelRepository.findAll();
+			labelList = (List<Label>) labelRepository.findAll();
+			return labelList;
 		}
-		return null;
+		return labelList;
 	}
 
 	@Override
 	public List<Note> getAllNotes(String token, long labelId) {
 		long userId = jwtGenerator.parseJWT(token);
+		List<Note> noteList = null;
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
 			Optional<Label> isLabelAvailable = labelRepository.findById(labelId);
 			if (isLabelAvailable.isPresent()) {
-				List<Note> list = isLabelAvailable.get().getNoteList();
-				log.info("Note List :"+list);
-				return list;
+				noteList = isLabelAvailable.get().getNoteList();
+				log.info("Note List :" + noteList);
+				return noteList;
 			}
 		}
-		return null;
+		return noteList;
 	}
 
 	@Override
-	public boolean addLabels(String token, long noteId, long labelId) {
+	public boolean addLabels(String token, long noteId, String labelName) {
 
 		Optional<Note> isNoteAvailable = noterepository.findById(noteId);
 		if (isNoteAvailable.isPresent()) {
-			Optional<Label> isLabelAvailable = labelRepository.findById(labelId);
-			if (isLabelAvailable.isPresent()) {
+			Label isLabelAvailable = labelRepository.findByName(labelName);
+			if (isLabelAvailable != null) {
 				log.info("Note :" + isNoteAvailable.get().getTitle());
 				/*
 				 * isLabelAvailable.get().getNoteList().add(isNoteAvailable.get());
 				 * labelRepository.save(isLabelAvailable.get());
 				 */
-				isNoteAvailable.get().getLabels().add(isLabelAvailable.get());
+				isNoteAvailable.get().getLabels().add(isLabelAvailable);
 				noterepository.save(isNoteAvailable.get());
 				return true;
 			}

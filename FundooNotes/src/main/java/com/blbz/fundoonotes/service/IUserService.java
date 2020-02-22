@@ -14,8 +14,6 @@ public interface IUserService {
 
 	List<User> getAllDetails();
 
-	Map<String, Object> findByIdUserId(long userId);
-
 	boolean updateDetails(User user);
 
 	boolean findByUserId(long userId);

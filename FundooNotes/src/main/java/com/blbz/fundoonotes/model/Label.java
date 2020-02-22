@@ -21,6 +21,7 @@ public class Label {
 
 	private String name;
 
+	@JsonIgnore
 	@ManyToMany(mappedBy = "labels")
 	private List<Note> noteList;
 	

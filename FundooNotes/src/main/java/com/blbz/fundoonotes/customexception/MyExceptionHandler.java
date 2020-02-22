@@ -19,7 +19,7 @@ public class MyExceptionHandler extends ResponseEntityExceptionHandler{
 		return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
 	}
 	
-	@ExceptionHandler({UserNotVerifiedException.class,NoteIdNotFoundException.class})
+	@ExceptionHandler({UserNotVerifiedException.class,UserNotFoundException.class,NoteIdNotFoundException.class})
 	public ResponseEntity<Response> userNotVerified(Exception ex){
 		Response response = new Response(ex.getMessage(), 404);
 		return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);

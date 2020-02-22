@@ -24,7 +24,7 @@ public class Collaborator {
 	
 	private String email;
 	
-	@JsonIgnore
+//	@JsonIgnore
 	@ManyToOne
 	@JoinColumn(name="noteId")
 	private Note noteColab;

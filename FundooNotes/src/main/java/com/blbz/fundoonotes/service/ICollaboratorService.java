@@ -14,4 +14,6 @@ public interface ICollaboratorService {
 
 	void updateCollaborator(UpdateCollaboratorDto updateColabDto);
 
+	void deleteColab(long noteId, String email);
+
 }

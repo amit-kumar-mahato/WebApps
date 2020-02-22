@@ -135,13 +135,6 @@ public class UserController {
 							.body(new Response("Password is Update Successfully", 200, userInfo))
 					: ResponseEntity.status(HttpStatus.NOT_MODIFIED)
 							.body(new Response("Password and Confirm Password doesn't matched", 400));
-		/*
-		 * boolean result = userService.updatePassword(token, pswd); return (result) ?
-		 * ResponseEntity.status(HttpStatus.ACCEPTED).body(new
-		 * Response("Password is Update Successfully", 200)) :
-		 * ResponseEntity.status(HttpStatus.NOT_MODIFIED) .body(new
-		 * Response("Password and Confirm Password doesn't matched", 400));
-		 */
 	}
 
 	/*

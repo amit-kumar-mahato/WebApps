@@ -77,4 +77,12 @@ public class CollaboratorServiceImpl implements ICollaboratorService {
 
 	}
 
+	@Override
+	public void deleteColab(long noteId, String email) {
+		Optional<Note> note= noteRepository.findById(noteId);
+		if(note.isPresent()) {
+			collaboratorRepository.deleteByNoteColabAndEmail(note.get(), email);
+		}
+	}
+
 }

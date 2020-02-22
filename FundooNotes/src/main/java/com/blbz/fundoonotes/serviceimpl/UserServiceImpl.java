@@ -1,6 +1,5 @@
 package com.blbz.fundoonotes.serviceimpl;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,16 +56,15 @@ public class UserServiceImpl implements IUserService {
 	@Transactional
 	@Override
 	public User registration(UserDto userDto) {
-		User userDetails = new User();
+		//User userDetails = new User();
 
 		Optional<User> checkEmailAvailability = userRepository.findOneByEmail(userDto.getEmail());
 		if(checkEmailAvailability.isPresent()) {
 			throw new EmailAlreadyExistException(userDto.getEmail()+" Already Exist");
 		}
 		else{
-			userDetails = modelMapper.map(userDto, User.class);
+			User userDetails = modelMapper.map(userDto, User.class);
 			userDetails.setCreatedAt(Utility.dateTime());
-			// userDetails.setPassword(Utility.passwordEncoder(userDto.getPassword()));
 			String password = encryption.encode(userDto.getPswd());
 			userDetails.setPswd(password);
 
@@ -88,21 +86,6 @@ public class UserServiceImpl implements IUserService {
 	@Override
 	public List<User> getAllDetails() {
 		return (List<User>) userRepository.findAll();
-	}
-
-	@Override
-	public Map<String, Object> findByIdUserId(long userId) {
-		Optional<User> isUserIdAvailable = userRepository.findById(userId);
-		Map<String, Object> map = null;
-		if (isUserIdAvailable.isPresent()) {
-			map = new HashMap<String, Object>();
-			map.put("UserId", isUserIdAvailable.get().getUserId());
-			map.put("FirstName", isUserIdAvailable.get().getFirstName());
-			map.put("LastName", isUserIdAvailable.get().getLastName());
-		} else {
-
-		}
-		return map;
 	}
 
 	@Override
@@ -206,7 +189,7 @@ public class UserServiceImpl implements IUserService {
 
 	@Override
 	public List<User> getAllUsers() {
-		List<User> users = (List<User>) userRepository.findAll();
-		return users;
+		return (List<User>) userRepository.findAll();
 	}
+
 }

@@ -1,10 +1,12 @@
 package com.blbz.fundoonotes.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,14 +44,23 @@ public class CollaboratorController {
 	/* Api to get all the collaborator of a note */
 	@GetMapping("/collaboratorlist")
 	public ResponseEntity<Response> getCollaborator(@RequestParam("noteId") long noteId) {
-		List<Collaborator> colabList = collaboratorService.getCollaboratorList(noteId);
+		List<String> colabList = collaboratorService.getCollaboratorList(noteId).stream().map(clb -> clb.getEmail())
+				.collect(Collectors.toList());
 		return ResponseEntity.status(HttpStatus.OK).body(new Response("Collaborator List", 200, colabList));
 	}
-	
-	@PutMapping
-	public ResponseEntity<Response> updateCollaborator(@RequestBody UpdateCollaboratorDto updateColabDto){
+
+	@PutMapping("/updateColab")
+	public ResponseEntity<Response> updateCollaborator(@RequestBody UpdateCollaboratorDto updateColabDto) {
 		collaboratorService.updateCollaborator(updateColabDto);
 		return ResponseEntity.status(HttpStatus.OK).body(new Response("Successfully updated", 200));
+	}
+
+	@DeleteMapping("/colab")
+	public ResponseEntity<Response> deleteCollaborator(@RequestParam("noteId") long noteId,
+			@RequestParam("email") String email) {
+		collaboratorService.deleteColab(noteId, email);
+		return ResponseEntity.status(HttpStatus.OK).body(new Response("Email Delete", 200));
+
 	}
 
 }

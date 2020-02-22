@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.blbz.fundoonotes.dto.ColorDto;
+import com.blbz.fundoonotes.dto.NoteColabDto;
 import com.blbz.fundoonotes.dto.NoteDto;
 import com.blbz.fundoonotes.dto.ReminderDto;
 import com.blbz.fundoonotes.model.Label;
@@ -76,7 +78,7 @@ public class NoteController {
 	@ApiOperation(value = "Api to get notes list", response = Response.class)
 	public ResponseEntity<Response> notes(@RequestHeader("token") String token) {
 		log.info("GET TOKEN :" + token);
-		List<Note> notes = noteService.getAllNotes(token);
+		List<NoteColabDto> notes = noteService.getAllNotes(token);
 		return ResponseEntity.status(HttpStatus.OK).body(new Response("Notes are", 200, notes));
 	}
 
@@ -97,10 +99,11 @@ public class NoteController {
 	 */
 	@PutMapping("notes/color/{noteId}")
 	@ApiOperation(value = "Api to add color", response = Response.class)
-	public ResponseEntity<Response> addColor(@RequestParam("color") String color, @RequestHeader("token") String token,
-			@PathVariable("noteId") long noteId) {
-		boolean result = noteService.addColor(color, token, noteId);
-		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Color is added successfully", 200))
+	public ResponseEntity<Response> addColor(@RequestHeader("token") String token,
+			@PathVariable("noteId") long noteId,@RequestBody ColorDto colorDto) {
+		
+		Note result = noteService.addColor(colorDto, token, noteId);
+		return (result!=null) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Color is added successfully", 200,result))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Something went wrong", 400));
 	}
 
@@ -122,8 +125,8 @@ public class NoteController {
 	@ApiOperation(value = "Api to set remainder", response = Response.class)
 	public ResponseEntity<Response> reminder(@RequestParam("noteId") long noteId, @RequestHeader("token") String token,
 			@RequestBody ReminderDto reminderDto) throws Exception {
-		boolean result = noteService.setReminder(noteId, token, reminderDto);
-		return (result) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Reminder is Added Successfully", 200))
+		Note result = noteService.setReminder(noteId, token, reminderDto);
+		return (result!=null) ? ResponseEntity.status(HttpStatus.OK).body(new Response("Reminder is Added Successfully", 200,result))
 				: ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response("Something went wrong", 400));
 	}
 
@@ -177,12 +180,12 @@ public class NoteController {
 	/*
 	 * API to get all labels of one Note
 	 */
-	@GetMapping("notes/labelsofnote")
-	@ApiOperation(value = "Api to get all labels of one note", response = Response.class)
-	public ResponseEntity<Response> getAllLabels(@RequestParam("noteId") long noteId,
-			@RequestHeader("token") String token) {
-		List<Label> noteList = noteService.getAllLabelsOfOneNote(token, noteId);
-		return ResponseEntity.status(HttpStatus.OK)
-				.body(new Response("Labels releated to current Note are", 200, noteList));
-	}
+//	@GetMapping("notes/labelsofnote")
+//	@ApiOperation(value = "Api to get all labels of one note", response = Response.class)
+//	public ResponseEntity<Response> getAllLabels(@RequestParam("noteId") long noteId,
+//			@RequestHeader("token") String token) {
+//		//List<Label> noteList = noteService.getAllLabelsOfOneNote(token, noteId);
+//		return ResponseEntity.status(HttpStatus.OK)
+//				.body(new Response("Labels releated to current Note are", 200, noteList));
+//	}
 }

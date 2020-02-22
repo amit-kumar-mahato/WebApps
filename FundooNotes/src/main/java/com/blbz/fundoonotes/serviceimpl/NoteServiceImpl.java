@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +15,16 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.blbz.fundoonotes.customexception.NoteIdNotFoundException;
+import com.blbz.fundoonotes.customexception.UserNotFoundException;
+import com.blbz.fundoonotes.dto.ColorDto;
+import com.blbz.fundoonotes.dto.NoteColabDto;
 import com.blbz.fundoonotes.dto.NoteDto;
 import com.blbz.fundoonotes.dto.ReminderDto;
 import com.blbz.fundoonotes.model.Label;
 import com.blbz.fundoonotes.model.Note;
 import com.blbz.fundoonotes.model.User;
+import com.blbz.fundoonotes.repository.CollaboratorRepository;
+import com.blbz.fundoonotes.repository.LabelRepository;
 import com.blbz.fundoonotes.repository.NoteRepository;
 import com.blbz.fundoonotes.repository.UserRepository;
 import com.blbz.fundoonotes.service.ElasticSearchService;
@@ -52,6 +58,12 @@ public class NoteServiceImpl implements INoteService {
 	@Autowired
 	RedisTemplate<String, Object> redisTemplate;
 
+	@Autowired
+	CollaboratorRepository collaboratorRepository;
+
+	@Autowired
+	LabelRepository labelRepository;
+
 	@Override
 	public Note computeSave(NoteDto noteDto, String token) {
 
@@ -70,7 +82,7 @@ public class NoteServiceImpl implements INoteService {
 			note.setColour("white");
 
 			Note noteInfo = noteRepository.save(note);
-			
+
 //			  if(noteInfo!=null) { String result = elasticSearchService.createNote(note);
 //			  log.info("Elastic Search :"+result); }
 
@@ -90,6 +102,7 @@ public class NoteServiceImpl implements INoteService {
 		if (isUserAvailable.isPresent()) {
 			Optional<Note> isNoteIdAvailable = noteRepository.findById(id);
 			if (isNoteIdAvailable.isPresent()) {
+				isNoteIdAvailable.get().setPin(false);
 				isNoteIdAvailable.get().setTrash(!isNoteIdAvailable.get().isTrash());
 				noteRepository.save(isNoteIdAvailable.get());
 				return true;
@@ -118,19 +131,26 @@ public class NoteServiceImpl implements INoteService {
 	}
 
 	@Override
-	public List<Note> getAllNotes(String token) {
+	public List<NoteColabDto> getAllNotes(String token) {
 		// long id = jwtGenerator.parseJWT(token);
 		long userId = getRedisCacheId(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
-		List<Note> getAllNotes = null;
+		List<NoteColabDto> getAllNotes = null;
 		if (isUserAvailable.isPresent()) {
-			getAllNotes = noteRepository.getAllNotes(userId);
+			getAllNotes = noteRepository.getAllNotes(userId).stream().map(note -> {
+				NoteColabDto colabDto = modelMapper.map(note, NoteColabDto.class);
+				colabDto.setColabList(collaboratorRepository.getAllColab(note.getNoteId()).stream().map(clb -> {
+					return clb.getEmail();
+				}).collect(Collectors.toList()));
+				colabDto.setLabelList(getAllLabelsOfOneNote(note.getNoteId()));
+				return colabDto;
+			}).collect(Collectors.toList());
 		}
 		return getAllNotes;
 	}
 
 	@Override
-	public boolean addColor(String color, String token, long id) {
+	public Note addColor(ColorDto color, String token, long id) {
 
 		// long userId = jwtGenerator.parseJWT(token);
 		long userId = getRedisCacheId(token);
@@ -138,12 +158,11 @@ public class NoteServiceImpl implements INoteService {
 		if (isUserAvailable.isPresent()) {
 			Optional<Note> isNoteAvailable = noteRepository.findById(id);
 			if (isNoteAvailable.isPresent()) {
-				isNoteAvailable.get().setColour(color);
-				noteRepository.save(isNoteAvailable.get());
-				return true;
+				isNoteAvailable.get().setColour(color.getColor());
+				return noteRepository.save(isNoteAvailable.get());
 			}
 		}
-		return false;
+		throw new UserNotFoundException("User Not Found");
 	}
 
 	@Override
@@ -155,6 +174,7 @@ public class NoteServiceImpl implements INoteService {
 			Optional<Note> isNoteAvailable = noteRepository.findById(id);
 			if (isNoteAvailable.isPresent()) {
 				isNoteAvailable.get().setArchiev(false);
+				isNoteAvailable.get().setTrash(false);
 				isNoteAvailable.get().setPin(!isNoteAvailable.get().isPin());
 				noteRepository.save(isNoteAvailable.get());
 				return true;
@@ -164,23 +184,22 @@ public class NoteServiceImpl implements INoteService {
 	}
 
 	@Override
-	public boolean setReminder(long noteId, String token, ReminderDto reminderDto) {
+	public Note setReminder(long noteId, String token, ReminderDto reminderDto) throws UserNotFoundException {
 		// long userId = jwtGenerator.parseJWT(token);
 		long userId = getRedisCacheId(token);
 		Optional<User> isUserAvailable = userRepository.findById(userId);
 		if (isUserAvailable.isPresent()) {
 			Optional<Note> isNoteAvailable = noteRepository.findById(noteId);
 			if (isNoteAvailable.isPresent()) {
-				String str =reminderDto.getDatetime();
+				String str = reminderDto.getDatetime();
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 				LocalDateTime dateTime = LocalDateTime.parse(str, formatter);
 				isNoteAvailable.get().setReminder(dateTime);
 				isNoteAvailable.get().setUpdatedAt(LocalDateTime.now());
-				noteRepository.save(isNoteAvailable.get());
-				return true;
+				return noteRepository.save(isNoteAvailable.get());
 			}
 		}
-		return false;
+		throw new UserNotFoundException("Invalid User Id");
 	}
 
 	@Override
@@ -208,7 +227,7 @@ public class NoteServiceImpl implements INoteService {
 	 * Add data to the redis cache
 	 */
 	private long getRedisCacheId(String token) {
-		log.info("TOKEN :"+token);
+		log.info("TOKEN :" + token);
 		String[] splitedToken = token.split("\\.");
 		String redisTokenKey = splitedToken[1] + splitedToken[2];
 		if (redisTemplate.opsForValue().get(redisTokenKey) == null) {
@@ -219,33 +238,27 @@ public class NoteServiceImpl implements INoteService {
 		return (Long) redisTemplate.opsForValue().get(redisTokenKey);
 	}
 
-	@Override
-	public List<Label> getAllLabelsOfOneNote(String token, long noteId){
-		long userId = getRedisCacheId(token);
-		Optional<User> isUserAvailable = userRepository.findById(userId);
-		List<Label> labels = null;
-		if (isUserAvailable.isPresent()) {
-			Optional<Note> noteInfo = noteRepository.findById(noteId);
-			if (noteInfo.isPresent()) {
-				labels = noteRepository.getLabelsByNoteId(noteId);
-				return labels;
-			}
+	private List<String> getAllLabelsOfOneNote(long noteId) {
+		List<String> labels = null;
+		Optional<Note> noteInfo = noteRepository.findById(noteId);
+		if (noteInfo.isPresent()) {
+			labels = labelRepository.getLabelsByNoteId(noteId);
+			return labels;
 		}
 		return labels;
 	}
 
 	@Override
-	public Note updateNoteDetails(long noteId, String token, NoteDto noteDto) throws NoteIdNotFoundException {
-		Optional<User> isUserAvailable = userRepository.findById( getRedisCacheId(token));
-		if(isUserAvailable.isPresent()) {
+	public Note updateNoteDetails(long noteId, String token, NoteDto noteDto) {
+		Optional<User> isUserAvailable = userRepository.findById(getRedisCacheId(token));
+		if (isUserAvailable.isPresent()) {
 			Optional<Note> noteInfo = noteRepository.findById(noteId);
 			if (noteInfo.isPresent()) {
 				noteInfo.get().setTitle(noteDto.getTitle());
 				noteInfo.get().setDescription(noteDto.getDescription());
 				noteInfo.get().setUpdatedAt(LocalDateTime.now());
 				return noteRepository.save(noteInfo.get());
-			}
-			else
+			} else
 				throw new NoteIdNotFoundException("The note you are trying to update is not available");
 		}
 		return null;
@@ -254,7 +267,7 @@ public class NoteServiceImpl implements INoteService {
 	@Override
 	public boolean deleteReminder(long noteId, String token) {
 		Optional<User> isUserAvailable = userRepository.findById(getRedisCacheId(token));
-		if(isUserAvailable.isPresent()) {
+		if (isUserAvailable.isPresent()) {
 			Optional<Note> noteInfo = noteRepository.findById(noteId);
 			if (noteInfo.isPresent()) {
 				noteInfo.get().setReminder(null);
